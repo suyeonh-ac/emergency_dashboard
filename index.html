@@ -578,7 +578,7 @@ textarea.chat-input.multi{border-radius:22px;}
 /* 흘러나오는 AI 답변 */
 .sw{opacity:0;}
 .sw.on{opacity:1;animation:swIn .45s cubic-bezier(.2,.8,.2,1) backwards;}
-@keyframes swIn{from{opacity:0;filter:blur(3px)}}
+@keyframes swIn{from{opacity:0}}   /* 사파리에서 blur 애니메이션이 스크롤 영역 잘림을 일으켜 투명도만 쓴다 */
 .s-caret{display:inline-block;width:7px;height:1em;margin-left:2px;border-radius:2px;vertical-align:-2px;background:var(--red);animation:scr 1s steps(1) infinite;}
 @keyframes scr{50%{opacity:0}}
 .s-skip{display:block;margin-top:6px;padding:4px 0;border:0;background:none;color:var(--faint);font:inherit;font-size:var(--fs-2xs);font-weight:700;cursor:pointer;}
@@ -1602,7 +1602,6 @@ function streamBubble(html,type){
     let n=per+(Math.random()<.5?1:0);
     while(n-->0&&i<words.length) words[i++].classList.add('on');
     words[i-1].insertAdjacentElement('afterend',caret);
-    box.scrollTop=box.scrollHeight;
     tm=setTimeout(i<words.length?tick:done,i<words.length?45+Math.random()*60:500);
   };
   skip.addEventListener('click',done);
