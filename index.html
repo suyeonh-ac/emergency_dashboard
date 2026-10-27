@@ -279,7 +279,9 @@ select{appearance:none;-webkit-appearance:none;}
 .best-metrics{display:flex;gap:8px;flex-wrap:wrap;font-size:var(--fs-xs);font-weight:700;margin-bottom:12px;}
 .best-metrics span{background:var(--tint);border-radius:999px;padding:6px 14px;color:var(--ink-2);}
 .best-metrics #bestHospDist{color:var(--red);background:var(--red-soft);}
-.best-reason{font-size:var(--fs-xs);color:var(--ink-3);background:var(--tint);border-radius:22px;padding:12px 16px;margin-bottom:14px;line-height:1.7;}
+.best-reason{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.rs-chip{display:inline-flex;align-items:center;min-height:30px;padding:0 14px;border-radius:999px;background:var(--tint);color:var(--ink-3);font-size:var(--fs-xs);font-weight:700;}
+.rs-chip.strong{background:var(--ink);color:var(--on-ink);}
 .best-actions{display:flex;gap:8px;}
 .best-actions .go{flex:2;} .best-actions .sub{flex:1;}
 .other-toggle{display:none;text-align:center;margin-bottom:8px;}
@@ -613,7 +615,7 @@ body.users-open .users-scrim{visibility:visible;opacity:1;transition-delay:0s;}
 /* 병원 리스트 접기/펼치기 */
 .collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s var(--ease);}
 .collapse.open{grid-template-rows:1fr;}
-.collapse-in{overflow:hidden;min-height:0;}
+.collapse-in{overflow:hidden;min-height:0;padding:10px 14px 72px;margin:-10px -14px -72px;}
 .collapse:not(.open) .collapse-in{visibility:hidden;transition:visibility 0s .55s;}
 .hosp-list .hosp-card{animation:panelIn .55s var(--ease) backwards;}
 .hosp-list .hosp-card:nth-child(2){animation-delay:.06s;} .hosp-list .hosp-card:nth-child(3){animation-delay:.12s;}
@@ -755,6 +757,15 @@ body.chat-open .chat-fab{animation-duration:9s;}
 .qr-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
 .qr-actions .pill-btn,.qr-actions .qr-close-btn{flex:1 1 auto;}
 body.large-text .qr-box{max-width:min(560px,94vw);}
+
+/* 챗봇 분류 답변 */
+.cl-head{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;}
+.cl-head strong{font-size:var(--fs-base);font-weight:800;}
+.cl-head span{font-size:var(--fs-xs);color:var(--mute);font-weight:600;}
+.cl-row{display:flex;gap:10px;padding:6px 0;font-size:var(--fs-xs);line-height:1.55;}
+.cl-row b{flex:0 0 5.2em;color:var(--mute);font-weight:700;}
+.cl-row span{flex:1;min-width:0;overflow-wrap:anywhere;}
+.cl-act{margin-top:8px;padding:10px 14px;border-radius:16px;background:var(--tint);font-size:var(--fs-xs);font-weight:700;line-height:1.55;}
 </style>
 </head>
 <body>
@@ -841,7 +852,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
     <div class="chat-hd-l">
       <div class="chat-avs" aria-hidden="true"><i>E</i><i>AI</i></div>
       <b class="chat-hd-title">어디가 불편하신가요?</b>
-      <small class="chat-hd-sub">증상 AI 분류 · KTAS 자동 판정</small>
+      <small class="chat-hd-sub">증상 AI 분류</small>
     </div>
     <button class="btn-reset-chat" type="button" onclick="resetChat()" title="대화 초기화">↺ 초기화</button>
   </div>
@@ -967,8 +978,8 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
     <div class="map-wrap">
       <div id="map"></div>
       <div class="map-info">
-        <strong id="locName">위치 확인 중...</strong>
-        <span id="locCoord">---, ---</span>
+        <strong id="locName">위치 확인 중</strong>
+        <span id="locCoord"></span>
       </div>
       <!-- 현위치 버튼 -->
       <button class="map-myloc-btn" onclick="goMyLoc()" title="현재 위치로 이동">
@@ -1319,6 +1330,23 @@ function resetChat(){
   if(typeof renderQuickChips === 'function') renderQuickChips();
 }
 
+function escHtml(v){ return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function chatErrWhy(e){
+  const m = String(e && e.message || '');
+  if(/^서버 오류 (\d+)/.test(m)) return m.replace('서버 오류','서버 응답 오류');
+  if(/Failed to fetch|NetworkError|Load failed/i.test(m)) return '서버에 연결할 수 없음';
+  return m || '알 수 없는 오류';
+}
+// AI 서버 연결 여부를 눈에 보이게 표시 (실패 시 규칙 분류로 대체되었음을 알림)
+let _chatSrc = null;
+function setChatSource(src, why){
+  const sub = document.querySelector('.chat-hd-sub');
+  if(sub) sub.textContent = src==='ai' ? 'AI 분류 연결됨' : '기본 규칙 모드 (AI 서버 연결 실패)';
+  if(src==='rule' && _chatSrc!=='rule'){
+    appendBubble('AI 서버에 연결하지 못해 기본 규칙으로 분류했어요. 정확도가 낮을 수 있으니 증상이 심하면 바로 119에 연락하세요.<br><em>원인: '+escHtml(why)+'</em>','sys');
+  }
+  _chatSrc = src;
+}
 function appendBubble(html,type){
   const c=document.getElementById('chatMsgs');
   const d=document.createElement('div');d.className=`bubble ${type}`;d.innerHTML=html;
@@ -1378,10 +1406,12 @@ async function sendChat(){
       // ktas_context 첫 응답에서만 내려옴 → 캐싱
       if(result.ktas_context) ktasContext = result.ktas_context;
 
+      result._src = 'ai';
     }catch(e){
       console.warn('API 실패, 규칙 기반 사용:', e.message);
-      result = { type:'classification', ...ruleFallback(msg) };
+      result = { type:'classification', ...ruleFallback(msg), _src:'rule', _why: chatErrWhy(e) };
     }
+    setChatSource(result._src, result._why);
 
     typingDiv.remove();
 
@@ -1446,41 +1476,27 @@ async function sendChat(){
       ktasReasonEl.textContent = reason;
     }
 
-    const specialtyText = result.specialty
-      ? `<br><span style="color:var(--ink);font-size:var(--fs-xs);">🏥 필요 진료과: ${result.specialty}</span>`
-      : '';
-    const twinUsedText = result.twin_used
-      ? `<br><span style="color:var(--mute);font-size:var(--fs-xs);">👤 Twin 프로파일 반영됨</span>`
-      : '';
-    const specialtyMatchBadge = (result.specialty && typeof result.specialty_match === 'boolean')
-      ? (result.specialty_match
-          ? `<br><span style="color:var(--mute);font-size:var(--fs-xs);">✅ 주변에 <strong>${result.specialty}</strong> 보유 병원 있음</span>`
-          : `<br><span style="color:var(--busy);font-size:var(--fs-xs);">⚠️ 주변에 ${result.specialty} 전문 병원 없음 — 거리 기준 추천</span>`)
-      : '';
-    const priorityText = result.hospital_priority
-      ? `<br><span style="color:var(--mute);font-size:var(--fs-xs);">📋 병원 선택 근거: ${result.hospital_priority}</span>`
-      : '';
-
-    // 단계별 근거 버블 텍스트
-    const stepsHtml = (result.reason_steps||[]).length > 0
-      ? '<br>' + result.reason_steps.map((s,i)=>
-          `<span style="display:block;font-size:var(--fs-xs);color:var(--text-sub);padding-left:10px;margin:2px 0;">${s}</span>`
-        ).join('')
-      : `<br><span style="color:var(--text-hint);font-size:var(--fs-xs);">${reason}</span>`;
+    const KT_TIME={1:'즉시 처치가 필요해요',2:'15분 이내 진료가 필요해요',3:'30분 이내 진료를 권장해요',4:'1시간 이내 진료를 권장해요',5:'2시간 이내 진료를 권장해요'};
+    const KT_ACT={1:'지금 119에 신고하거나 가장 가까운 응급실로 이동하세요.',2:'119에 신고하거나 응급실로 바로 이동하세요.',3:'가까운 응급실로 이동하세요.',4:'가까운 응급실이나 야간 진료 기관을 이용하세요. 증상이 심해지면 바로 응급실로 가세요.',5:'외래나 야간 진료로 충분할 수 있어요. 증상이 심해지면 응급실로 가세요.'};
+    const row=(k,v)=> v ? `<div class="cl-row"><b>${k}</b><span>${escHtml(v)}</span></div>` : '';
+    const stepsTxt=(result.reason_steps||[]).filter(Boolean).map(x=>String(x).trim().replace(/[.。]?$/,'.')).join(' ');
+    const why = stepsTxt || reason;
+    const matchTxt = (result.specialty && typeof result.specialty_match==='boolean')
+      ? (result.specialty_match ? `주변에 ${result.specialty} 병원이 있어요` : `주변에 ${result.specialty} 병원이 없어 가까운 순으로 추천해요`) : '';
 
     appendBubble(
-      `<strong>KTAS ${level}</strong> · ${kl[level]}<br>` +
-      stepsHtml +
-      (cc ? `<br><span style="color:var(--ink);font-size:var(--fs-xs);">주호소: ${cc}</span>` : '') +
-      specialtyText +
-      specialtyMatchBadge +
-      priorityText +
-      twinUsedText,
+      `<div class="cl-head"><strong>KTAS ${level}단계 ${kl[level]}</strong><span>${KT_TIME[level]}</span></div>` +
+      row('판단 근거', why) +
+      row('주호소', cc) +
+      row('필요 진료과', result.specialty || deptLabel) +
+      row('병원 추천', matchTxt || result.hospital_priority || '') +
+      (result.twin_used ? row('반영 정보','등록된 환자 정보(나이·기저질환·복용약)') : '') +
+      `<div class="cl-act">${KT_ACT[level]}</div>`,
       'sys'
     );
 
     if(level <= 2){
-      appendBubble('🚨 즉각적인 처치가 필요합니다. 119에 신고하거나 최근접 응급실로 이동하세요.','crit');
+      appendBubble('즉각적인 처치가 필요해요. 119에 신고하거나 가장 가까운 응급실로 이동하세요.','crit');
       setTimeout(()=>runSearch(),1000);
     }
 
@@ -2072,7 +2088,7 @@ function triggerPanicMode(symptomText) {
 ${profile ? `👤 <strong>${profile.name}</strong> 님의 프로파일 로드됨<br>
 기저질환: ${(profile.conditions||[]).join(', ') || '없음'}<br>
 복용약: ${(profile.medications||[]).join(', ') || '없음'}<br><br>` : ''}
-🔴 <strong>KTAS 1~2 의심 — 즉시 응급실로 이동하세요</strong><br><br>
+<strong>KTAS 1~2로 의심돼요. 바로 응급실로 이동하세요</strong><br><br>
 [시뮬레이션] 가장 가까운 응급실로 자동 연결 중...
   `;
   appendBubble(msg, 'crit');
@@ -2115,7 +2131,7 @@ function showPanicHospitalCard(profile) {
   <div style="font-size:var(--fs-sm);font-weight:600;color:var(--busy);margin-bottom:8px;">🚨 즉시 이동 추천 병원</div>
   <div style="font-size:var(--fs-base);font-weight:700;color:var(--ink);margin-bottom:2px;">${best.name}</div>
   <div style="font-size:var(--fs-2xs);color:var(--mute);margin-bottom:6px;">${best.address||''}</div>
-  <div style="margin-bottom:6px;">${specBadges||'<span style="font-size:var(--fs-2xs);color:var(--faint);">특수과 정보 없음</span>'}</div>
+  <div style="margin-bottom:6px;">${specBadges||'<span style="font-size:var(--fs-2xs);color:var(--faint);">진료과 정보 없음</span>'}</div>
   ${matchBadge}
   <div style="display:flex;gap:14px;font-size:var(--fs-xs);color:var(--mute);margin-bottom:10px;flex-wrap:wrap;">
     <span>📍 ${best.dist}km</span>
@@ -2159,8 +2175,8 @@ function ruleFallback(t){
     {kw:['발열','열'],ktas:4,dept:'peds',tags:['발열']},
     {kw:['구토','토하'],ktas:4,dept:'internal',tags:['구토']},
   ];
-  for(const r of rules){if(r.kw.some(k=>t.includes(k))){const dl=DEPT_MAP[r.dept]?.label||'응급';const kl={1:'소생',2:'긴급',3:'응급',4:'준응급',5:'비응급'};return{ktas:r.ktas,ktas_reason:'규칙 기반 분류',dept:r.dept,dept_label:dl,symptoms:r.tags,critical:r.ktas<=2,message:`KTAS ${r.ktas}(${kl[r.ktas]}): ${dl} 진료가 필요합니다.`};}}
-  return{ktas:4,ktas_reason:'기본 분류',dept:'general',dept_label:'응급',symptoms:[],critical:false,message:'응급실 방문이 필요합니다.'};
+  for(const r of rules){if(r.kw.some(k=>t.includes(k))){const dl=DEPT_MAP[r.dept]?.label||'응급';const kl={1:'소생',2:'긴급',3:'응급',4:'준응급',5:'비응급'};const hit=r.kw.find(k=>t.includes(k));return{ktas:r.ktas,ktas_reason:`입력한 말에 '${hit}'이(가) 있어 ${kl[r.ktas]} 단계로 분류했어요`,chief_complaint:r.tags[0]||'',dept:r.dept,dept_label:dl,symptoms:r.tags,critical:r.ktas<=2,message:`KTAS ${r.ktas}(${kl[r.ktas]}): ${dl} 진료가 필요합니다.`};}}
+  return{ktas:4,ktas_reason:'입력한 증상만으로는 단계를 정하기 어려워 준응급으로 안내해요',dept:'general',dept_label:'응급',symptoms:[],critical:false,message:'응급실 방문이 필요합니다.'};
 }
 
 // ══════════════════════════════════════════
@@ -2488,7 +2504,7 @@ function renderHospList(hospitals,isCrit){
     const specialties = h.specialties || [];
     const isRegularHosp = regHospKey && h.name.includes(regHospKey);
     const regularBadgeHtml = isRegularHosp
-      ? '<span style="display:inline-block;font-size:var(--fs-2xs);padding:2px 8px;border-radius:10px;margin:2px 2px 0 0;background:var(--red-soft);color:var(--red-deep);font-weight:700;">⭐ 기존 진료 병원</span>'
+      ? '<span style="display:inline-block;font-size:var(--fs-2xs);padding:2px 8px;border-radius:10px;margin:2px 2px 0 0;background:var(--red-soft);color:var(--red-deep);font-weight:700;">기존 이용 병원</span>'
       : '';
     const specialtyBadgesHtml = specialties.length > 0
       ? specialties.map(sp => {
@@ -2512,13 +2528,14 @@ function renderHospList(hospitals,isCrit){
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.27-.27.67-.36 1-.24 1.1.4 2.3.6 3.6.6.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.4 0-17-7.6-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.3.2 2.5.6 3.6.1.33.01.73-.24 1L6.6 10.8z"/></svg>
             ${h.phone||'전화번호 없음'}
           </div>
-          <div class="hosp-meta-item">🚗 거리: <strong style="color:var(--red);margin-left:3px;">${h.dist}km</strong></div>
-          <div class="hosp-meta-item">⏱️ 대기: <strong style="color:var(--amber);margin-left:3px;">${h.eta}분</strong></div>
+          <div class="hosp-meta-item">거리: <strong style="color:var(--red);margin-left:3px;">${h.dist}km</strong></div>
+          <div class="hosp-meta-item">대기: <strong style="color:var(--amber);margin-left:3px;">${h.eta}분</strong></div>
         </div>
       </div>
       <div class="hosp-right">
         <div class="bed-badge ${bedClass[h.available]}">병상 ${h.availBeds}개</div>
         <div class="score-bar"><div class="score-fill" style="width:${h.score}%"></div></div>
+        <div style="font-size:var(--fs-2xs);color:var(--mute);margin-top:4px;text-align:right;font-weight:700;">적합도 ${h.score}</div>
         <div style="font-size:var(--fs-2xs);color:var(--text-hint);margin-top:3px;text-align:right;">${!h.real?'시뮬레이션':''}</div>
       </div>
     </div>`;
@@ -2536,8 +2553,8 @@ function renderHospList(hospitals,isCrit){
   if(subLabel){
     const cnt = hospitals.length;
     subLabel.textContent = isReal
-      ? `실시간 응급실 ${cnt}개 — 국립중앙의료원 데이터`
-      : `카카오 검색 결과 ${cnt}개 (실시간 API 연결 중)`;
+      ? `국립중앙의료원 실시간 데이터 ${cnt}곳`
+      : `지도 검색 결과 ${cnt}곳 (실시간 병상 정보 없음)`;
   }
 }
 
@@ -2551,52 +2568,40 @@ function renderBestHospCard(hospitals, isCrit) {
 
   document.getElementById('bestHospName').textContent = h.name;
   document.getElementById('bestHospAddr').textContent = h.address || '주소 정보 없음';
-  document.getElementById('bestHospDist').textContent = `📍 ${h.dist}km`;
-  document.getElementById('bestHospEta').textContent  = `⏱️ 약 ${h.eta}분`;
+  document.getElementById('bestHospDist').textContent = `${h.dist}km`;
+  document.getElementById('bestHospEta').textContent  = `약 ${h.eta}분`;
 
   const bedColor = {ok:'var(--green)',warn:'var(--amber)',crit:'var(--red)'}[h.available] || 'var(--text-sub)';
   const bedEl = document.getElementById('bestHospBed');
-  if (bedEl) { bedEl.textContent = `🛏️ 가용 ${h.availBeds}병상`; bedEl.style.color = bedColor; }
+  if (bedEl) { bedEl.textContent = `병상 ${h.availBeds}개`; bedEl.style.color = bedColor; }
 
   const profile   = (typeof getActiveProfile === 'function') ? getActiveProfile() : null;
   const specialty = (typeof getSpecialtyFromConditions === 'function')
     ? getSpecialtyFromConditions(profile?.conditions || []) : null;
-  const reasons = [];
-
-  if (h._isRegularHosp) {
-    const bonusMap = {3:10, 4:25, 5:35};
-    const ktasNow = detKtas || 4;
-    const bonus = bonusMap[ktasNow] || 15;
-    reasons.push(`⭐ 기존 진료 병원 우선 추천 (가중치 +${bonus}점)`);
-  }
+  const tags = [];                                   // [텍스트, 강조 여부]
   const SPECIALTY_REQ = new Set(['ob','peds','opth','psych']);
   const needsSpec = detDept && SPECIALTY_REQ.has(detDept);
+  const hasSpecFor = key => (h.specialties||[]).some(s => s.includes(
+    {ob:'산부인과',peds:'소아과',opth:'안과',psych:'정신'}[key]||'##'));
 
   if (isCrit) {
-    if (needsSpec) {
-      // 산부인과·소아과 등 — 전문과 보유 여부 표시
-      const hasSpec = (h.specialties||[]).some(s => s.includes(
-        {ob:'산부인과',peds:'소아과',opth:'안과',psych:'정신'}[detDept]||''
-      ));
-      reasons.push(hasSpec
-        ? `🚨 KTAS 1~2 + ${DEPT_MAP[detDept]?.label} 보유 병원 우선 추천`
-        : `⚠️ KTAS 1~2 — 주변 ${DEPT_MAP[detDept]?.label} 보유 병원 없음, 최근접 추천`
-      );
-    } else {
-      reasons.push('🚨 KTAS 1~2 (심정지/외상 등) — 최근접 응급실 즉시 이동');
-    }
+    tags.push(['가장 가까운 응급실', true]);
+    if (needsSpec) tags.push([hasSpecFor(detDept) ? `${DEPT_MAP[detDept]?.label} 있음` : `${DEPT_MAP[detDept]?.label} 없음, 가까운 순`, false]);
   } else {
-    if (specialty && (h.specialties||[]).some(s => s.includes(specialty.replace(/과$/,'')))) {
-      reasons.push(`✅ ${specialty} 전문과 보유 (기저질환 매칭)`);
-    }
+    tags.push([`적합도 ${h.score}`, true]);
+    if (h._isRegularHosp) tags.push(['기존 이용 병원', false]);
+    if (specialty && (h.specialties||[]).some(s => s.includes(specialty.replace(/과$/,'')))) tags.push([`${specialty} 있음`, false]);
   }
-  if (h.available === 'ok')   reasons.push('🟢 응급 병상 여유');
-  if (h.available === 'warn') reasons.push('🟡 병상 보통');
-  if (h.available === 'crit') reasons.push('🔴 병상 포화 상태');
-  if (!isCrit) reasons.push(`📊 종합 점수 ${h.score}점 (거리·대기·전문과·기존병원 가중 합산)`);
-  if (!h.real) reasons.push('ℹ️ 실시간 데이터 미연동 — 참고용');
+  tags.push([{ok:'병상 여유',warn:'병상 보통',crit:'병상 포화'}[h.available] || '병상 정보 없음', false]);
+  if (!h.real) tags.push(['참고용 데이터', false]);
 
-  document.getElementById('bestHospReason').innerHTML = reasons.join('<br>');
+  const rsEl = document.getElementById('bestHospReason');
+  rsEl.textContent = '';
+  tags.forEach(([t, strong]) => {
+    const c = document.createElement('span'); c.className = 'rs-chip' + (strong ? ' strong' : ''); c.textContent = t;
+    rsEl.appendChild(c);
+  });
+  rsEl.title = isCrit ? '' : '적합도는 거리, 대기 시간, 전문과, 병상, 기존 이용 병원을 합산한 값이에요';
 
   const callBtn = document.getElementById('bestHospCallBtn');
   if (callBtn) {
@@ -2643,8 +2648,8 @@ function openRouteModal(idx){
   // 모달 기본 정보
   document.getElementById('routeHospName').textContent = h.name;
   document.getElementById('routeHospAddr').textContent = h.address||'주소 정보 없음';
-  document.getElementById('routeDist').textContent     = `📍 ${h.dist}km`;
-  document.getElementById('routeEta').textContent      = `⏱️ 약 ${h.eta}분`;
+  document.getElementById('routeDist').textContent     = `${h.dist}km`;
+  document.getElementById('routeEta').textContent      = `약 ${h.eta}분`;
   document.getElementById('routeBed').textContent      = `🏥 가용 ${h.availBeds}병상`;
 
   // ── 병원 상세 패널 채우기 ──────────────────────
@@ -2754,9 +2759,42 @@ function openRoute(mode){
   closeRouteModal();
 }
 
+// ── 위치 확인 (웹) ─────────────────────────
+// 스마트폰은 GPS(고정밀)를 먼저, PC는 Wi-Fi·IP 기반 위치를 먼저 시도한다.
+// PC는 GPS가 없어서 고정밀만 요청하면 시간 초과로 실패하는 경우가 많다.
+const _isMobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+let _locIsDefault = false;
+function _getPos(o){ return new Promise((ok,no)=>navigator.geolocation.getCurrentPosition(ok,no,o)); }
+async function locateWeb(){
+  const tries = _isMobileUA
+    ? [{enableHighAccuracy:true,timeout:10000,maximumAge:0},{enableHighAccuracy:false,timeout:10000,maximumAge:60000}]
+    : [{enableHighAccuracy:false,timeout:8000,maximumAge:300000},{enableHighAccuracy:true,timeout:15000,maximumAge:0}];
+  let err;
+  for(const o of tries){
+    try{ return await _getPos(o); }
+    catch(e){ err=e; if(e && e.code===1) break; }     // 권한 거부면 더 시도하지 않음
+  }
+  throw err;
+}
+function locErrMsg(e){
+  const c = e && e.code;
+  if(c===1) return '위치 권한이 꺼져 있어요. 주소창의 자물쇠 아이콘에서 위치를 허용해 주세요';
+  if(c===2) return '현재 위치를 확인하지 못했어요. PC는 Wi-Fi와 Windows 위치 서비스를 켜 주세요';
+  if(c===3) return '위치 확인 시간이 초과됐어요. 현위치 버튼으로 다시 시도해 주세요';
+  return '위치를 확인하지 못했어요';
+}
+async function retryLocate(){
+  showToast('위치를 다시 확인하는 중이에요');
+  try{
+    const p = await locateWeb();
+    initLoc(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy);
+  }catch(e){ showToast(locErrMsg(e)); }
+}
+
 // ── 현위치로 이동 ─────────────────────────
 function goMyLoc(){
   if(!mapReady){ showToast('지도가 준비되지 않았습니다.'); return; }
+  if(_locIsDefault && !(window.Capacitor && window.Capacitor.isNativePlatform())){ retryLocate(); return; }
   if(userLat && userLng){
     kakaoMap.setCenter(new kakao.maps.LatLng(userLat, userLng));
     kakaoMap.setLevel(4);
@@ -2789,27 +2827,32 @@ function initMap(){
           });
           initLoc(pos.coords.latitude, pos.coords.longitude);
         } else {
-          initLoc(37.5665, 126.9780);
+          showToast('위치 권한이 꺼져 있어요. 설정에서 위치를 허용해 주세요');
+          initLoc(37.5665, 126.9780, true);
         }
       }catch(e){
         console.error('[위치] Capacitor Geolocation 오류:', e.message);
-        initLoc(37.5665, 126.9780);
+        showToast('위치를 확인하지 못했어요');
+        initLoc(37.5665, 126.9780, true);
       }
     // ── 웹 브라우저 환경: 기존 방식 (maximumAge:0으로 캐시 방지) ──
     } else if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(
-        p=>initLoc(p.coords.latitude,p.coords.longitude),
-        ()=>initLoc(37.5665,126.9780),
-        {enableHighAccuracy:true,timeout:10000,maximumAge:0}
-      );
+      try{
+        const p = await locateWeb();
+        initLoc(p.coords.latitude,p.coords.longitude,false,p.coords.accuracy);
+      }catch(e){
+        showToast(locErrMsg(e));
+        initLoc(37.5665,126.9780,true);
+      }
     } else {
-      initLoc(37.5665,126.9780);
+      showToast('이 브라우저는 위치 기능을 지원하지 않아요');
+      initLoc(37.5665,126.9780,true);
     }
   });
 }
 
-async function initLoc(lat,lng){
-  userLat=lat;userLng=lng;
+async function initLoc(lat,lng,isDefault,accuracy){
+  userLat=lat;userLng=lng;_locIsDefault=!!isDefault;
   kakaoMap.setCenter(new kakao.maps.LatLng(lat,lng));kakaoMap.setLevel(5);
 
   // 사용자 위치 핀 (빨강 원)
@@ -2818,15 +2861,36 @@ async function initLoc(lat,lng){
     <div style="position:absolute;inset:0;border-radius:50%;background:rgba(255,0,0,.2);animation:upulse 2s infinite;"></div>
     <div style="position:absolute;top:50%;left:50%;width:14px;height:14px;border-radius:50%;background:#FF0000;box-shadow:0 2px 8px rgba(41,34,34,.3);transform:translate(-50%,-50%);"></div>
   </div><style>@keyframes upulse{0%,100%{transform:scale(.8);opacity:.6}70%{transform:scale(2);opacity:0}}</style>`;
-  new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(lat,lng),content:myEl,zIndex:20}).setMap(kakaoMap);
+  if(window._myOv) window._myOv.setMap(null);
+  window._myOv = new kakao.maps.CustomOverlay({position:new kakao.maps.LatLng(lat,lng),content:myEl,zIndex:20});
+  window._myOv.setMap(kakaoMap);
 
-  document.getElementById('locCoord').textContent=`${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-  new kakao.maps.services.Geocoder().coord2RegionCode(lng,lat,function(r,s){
-    if(s===kakao.maps.services.Status.OK){
-      const reg=r.find(x=>x.region_type==='H')||r[0];
-      document.getElementById('locName').textContent=reg?.address_name||'위치 확인됨';
-    }
-  });
+  const locNameEl=document.getElementById('locName'), locSubEl=document.getElementById('locCoord');
+  if(isDefault){
+    locNameEl.textContent='위치를 확인하지 못했어요';
+    locSubEl.textContent='서울시청 기준으로 보여드려요';
+  } else {
+    locNameEl.textContent='내 위치';
+    const accKm = accuracy && accuracy>1000 ? `오차 약 ${(accuracy/1000).toFixed(1)}km` : '';
+    locSubEl.textContent = accKm;
+    const geo = new kakao.maps.services.Geocoder();
+    geo.coord2Address(lng,lat,function(r,s){
+      if(s===kakao.maps.services.Status.OK && r[0]){
+        const road = r[0].road_address && r[0].road_address.address_name;
+        const lot  = r[0].address && r[0].address.address_name;
+        locNameEl.textContent = road || lot || '내 위치';
+        const bld = r[0].road_address && r[0].road_address.building_name;
+        locSubEl.textContent = [bld, accKm].filter(Boolean).join(' · ');
+      } else {
+        geo.coord2RegionCode(lng,lat,function(r2,s2){
+          if(s2===kakao.maps.services.Status.OK){
+            const reg=r2.find(x=>x.region_type==='H')||r2[0];
+            locNameEl.textContent=(reg&&reg.address_name)||'내 위치';
+          }
+        });
+      }
+    });
+  }
 
   // hospList에 로딩 메시지 표시
   const hl = document.getElementById('hospList');
@@ -5458,6 +5522,8 @@ async function openQrModal() {
     }
     if (res.status === 401) { if (seq === _qrSeq) qrView('error', { title: '권한이 필요해요', desc: '이 환경에서는 인증된 앱에서만 QR을 만들 수 있어요.' }); return; }
     if (res.status === 429) { if (seq === _qrSeq) qrView('error', { title: '잠시 후 다시 시도해 주세요', desc: '요청이 너무 많아요.' }); return; }
+    if (res.status === 404 || res.status === 405) { if (seq === _qrSeq) qrView('error', { title: '서버에 QR 기능이 아직 없어요', desc: '서버가 새 버전으로 배포되지 않았어요. 서버를 다시 배포해 주세요. (응답 코드 ' + res.status + ')' }); return; }
+    if (res.status >= 500) { if (seq === _qrSeq) qrView('error', { title: '서버에서 오류가 났어요', desc: '서버 로그를 확인해 주세요. (응답 코드 ' + res.status + ')' }); return; }
     if (!res.ok || !j.token) throw new Error('http ' + res.status);
 
     created = { uid, token: j.token, revokeKey: j.revoke_key, expiresAt: Date.now() + (j.expires_in || 3600) * 1000, demo: !!j.demo };
@@ -5474,7 +5540,8 @@ async function openQrModal() {
   } catch (e) {
     if (created) { _qrShare = created; qrRevokeCurrent(); }
     if (seq === _qrSeq) qrView('error', e && e.message === 'timeout'
-      ? { title: '서버 응답이 없어요', desc: '연결이 느려요. 잠시 후 다시 시도해 주세요.' } : undefined);
+      ? { title: '서버 응답이 없어요', desc: '연결이 느려요. 잠시 후 다시 시도해 주세요.' }
+      : { title: '서버에 연결할 수 없어요', desc: '서버가 꺼져 있거나 이 주소의 접속이 허용되지 않았어요. 접속 주소: ' + location.origin + ' / 서버: ' + BACKEND_URL });
   }
 }
 
@@ -5524,7 +5591,7 @@ requestAnimationFrame(updateAppHeight);
   const s=document.createElement('script');
   s.src=`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&libraries=services&autoload=false`;
   s.onload=()=>{if(typeof kakao==='undefined'){document.getElementById('locName').textContent='카카오 SDK 로드 실패';return;}initMap();};
-  s.onerror=()=>{document.getElementById('locName').textContent='지도 로드 실패 — 도메인 등록 확인';document.getElementById('locCoord').textContent='카카오 콘솔 → 플랫폼 → Web 도메인 등록 필요';};
+  s.onerror=()=>{document.getElementById('locName').textContent='지도를 불러오지 못했어요';document.getElementById('locCoord').textContent='카카오 개발자 콘솔에서 Web 도메인 등록이 필요해요';};
   document.head.appendChild(s);
 })();
 </script>

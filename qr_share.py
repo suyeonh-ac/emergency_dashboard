@@ -46,6 +46,7 @@ MAX_BODY = 96 * 1024
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")      # secrets.token_urlsafe(32)
 HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 
+_auto_db = None
 _db_lock = threading.Lock()
 _db_ready = set()
 
@@ -58,7 +59,29 @@ def _mode():
 
 
 def _db_path():
-    return os.environ.get("QR_DB_PATH") or os.path.join(BASE_DIR, "qr_shares.db")
+    """QR_DB_PATH > 앱 폴더 > 임시 폴더 순. 앱 폴더가 읽기 전용인 배포 환경에서도 동작하도록 한다."""
+    env = os.environ.get("QR_DB_PATH")
+    if env:
+        return env
+    global _auto_db
+    if _auto_db is None:
+        if _writable(BASE_DIR):
+            _auto_db = os.path.join(BASE_DIR, "qr_shares.db")
+        else:
+            import tempfile
+            _auto_db = os.path.join(tempfile.gettempdir(), "qr_shares.db")
+    return _auto_db
+
+
+def _writable(folder):
+    try:
+        probe = os.path.join(folder, ".qr_write_test")
+        with open(probe, "w") as f:
+            f.write("1")
+        os.remove(probe)
+        return True
+    except OSError:
+        return False
 
 
 def _default_ttl():
