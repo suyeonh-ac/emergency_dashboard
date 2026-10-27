@@ -64,3 +64,14 @@ body{
 .card:nth-of-type(2){animation-delay:.06s}
 @keyframes rise{from{opacity:0;transform:translateY(12px)}}
 @media (prefers-reduced-motion:reduce){*{animation:none !important;}}
+
+.pulse{position:fixed;left:50%;top:34%;width:0;height:0;pointer-events:none;}
+.pulse i{position:absolute;left:-90px;top:-90px;width:180px;height:180px;border-radius:50%;border:2px solid var(--red);opacity:0;}
+body.scan .pulse i{animation:pr 1.2s ease-out forwards;}
+body.scan .pulse i+i{animation-delay:.25s;}
+@keyframes pr{0%{opacity:.7;transform:scale(.2)}100%{opacity:0;transform:scale(3.2)}}
+body.scan #stOk .card,body.scan #stOk .foot{animation:rv .7s cubic-bezier(.2,.8,.2,1) both;}
+body.scan #stOk .list{animation-delay:.12s;}
+body.scan #stOk .foot{animation-delay:.24s;}
+@keyframes rv{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){body.scan .pulse i,body.scan #stOk .card,body.scan #stOk .foot{animation:none}}

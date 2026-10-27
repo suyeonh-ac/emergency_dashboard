@@ -3,7 +3,7 @@
   var $ = function (id) { return document.getElementById(id); };
   var TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
   var TK = 'eum_qr_t', AK = 'eum_qr_a';
-  var token = null, expiresAt = 0, tick = 0, poll = 0, busy = false;
+  var scanned = false, token = null, expiresAt = 0, tick = 0, poll = 0, busy = false;
 
   function ss(k, v) {
     try { if (v === undefined) return sessionStorage.getItem(k); if (v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v); } catch (e) {}
@@ -78,6 +78,11 @@
     // 서버 시계 기준으로 남은 시간을 계산해 기기 시계 오차를 피한다
     expiresAt = Date.now() + (new Date(d.expires_at) - new Date(d.server_time));
     show('stOk');
+    if (!scanned) {            // NFC 태그처럼 처음 한 번만 스캔 연출
+      scanned = true;
+      var b = document.body; b.classList.add('scan');
+      setTimeout(function () { b.classList.remove('scan'); }, 1700);
+    }
     stopTimers();
     var upd = function () {
       var s = Math.max(0, Math.round((expiresAt - Date.now()) / 1000));

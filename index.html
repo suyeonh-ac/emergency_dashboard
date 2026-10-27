@@ -269,6 +269,19 @@ select{appearance:none;-webkit-appearance:none;}
 .section-sub{font-size:var(--fs-sm);color:var(--mute);margin-bottom:16px;}
 .res-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .res-head-r{display:flex;gap:8px;align-items:center;}
+.bed-delta{display:inline-flex;align-items:center;gap:1px;margin-left:6px;font-weight:800;animation:deltaIn .5s var(--spring);}
+.bed-delta svg{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;}
+.bed-delta.up{color:var(--live);}.bed-delta.down{color:var(--red);}
+@keyframes deltaIn{from{opacity:0;transform:translateY(5px)}}
+.sum-box{max-width:min(420px,calc(100vw - 32px));}
+.sum-cv{display:block;width:100%;height:auto;border-radius:22px;margin:0 auto 14px;background:var(--tint);}
+.sum-opt{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;font-size:var(--fs-sm);font-weight:700;cursor:pointer;}
+.sum-opt input{width:20px;height:20px;accent-color:var(--red);min-height:0;box-shadow:none;}
+.demo-tag{margin-left:8px;padding:2px 9px;border-radius:999px;background:var(--red-soft);color:var(--red);font-size:var(--fs-2xs);font-weight:800;}
+.ic{width:1.15em;height:1.15em;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-.2em;}
+.route-btn-icon .ic{width:1.55em;height:1.55em;stroke-width:1.8;}
+.ic-spin{animation:icspin 1s linear infinite;}
+@keyframes icspin{to{transform:rotate(360deg)}}
 .live-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--tint);color:var(--ink-3);font-size:var(--fs-2xs);font-weight:800;white-space:nowrap;}
 .live-lamp,.live-dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--faint-2);box-shadow:none;transition:background .3s,box-shadow .3s;animation:none;}
 [data-state="on"] .live-lamp,.live-chip[data-state="on"] .live-dot{background:var(--live);box-shadow:0 0 0 3px var(--live-soft),0 0 10px 1px var(--live);animation:lamp 2.2s ease-in-out infinite;}
@@ -512,6 +525,11 @@ body.chat-open .chat-panel{transform:none;opacity:1;pointer-events:auto;}
 .chat-input-wrap{flex-shrink:0;padding:10px 14px 16px;display:flex;gap:8px;align-items:center;position:relative;}
 .voice-status{display:none;position:absolute;bottom:calc(var(--ctl) + 24px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--on-ink);border-radius:999px;padding:6px 16px;font-size:var(--fs-xs);font-weight:700;white-space:nowrap;z-index:10;}
 .voice-status.show{display:block;}
+.voice-wave{display:inline-flex;align-items:center;gap:3px;height:16px;margin:0 6px 0 10px;vertical-align:middle;}
+.voice-wave i{display:block;width:3px;height:100%;border-radius:2px;background:currentColor;transform:scaleY(.22);transform-origin:center;transition:transform .09s linear;}
+.voice-status.sim .voice-wave i{animation:wv 1s ease-in-out infinite;}
+.voice-status.sim .voice-wave i:nth-child(2){animation-delay:.15s}.voice-status.sim .voice-wave i:nth-child(3){animation-delay:.3s}.voice-status.sim .voice-wave i:nth-child(4){animation-delay:.45s}.voice-status.sim .voice-wave i:nth-child(5){animation-delay:.6s}
+@keyframes wv{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
 .voice-timer{color:var(--busy);margin-left:4px;font-variant-numeric:tabular-nums;}
 .chat-input{flex:1;min-width:0;min-height:var(--ctl);font-size:var(--fs-sm);font-weight:500;}
 textarea.chat-input{display:block;height:var(--ctl);max-height:132px;line-height:1.5;padding:calc((var(--ctl) - 1.5em) / 2) calc(var(--ctl) * .45);border-radius:calc(var(--ctl) / 2);overflow:hidden;transition:height .25s var(--ease),border-radius .25s var(--ease),background .2s,box-shadow .2s;}
@@ -799,7 +817,31 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
 .cl-row b{flex:0 0 5.2em;color:var(--mute);font-weight:700;}
 .cl-row span{flex:1;min-width:0;overflow-wrap:anywhere;}
 .cl-act{margin-top:8px;padding:10px 14px;border-radius:16px;background:var(--tint);font-size:var(--fs-xs);font-weight:700;line-height:1.55;}
+
+/* ── 포인트만 남기기 ──
+   유지: 큰 글라스 표면(카드·패널·상단바), 배경 빛번짐, 119 버튼, 채팅 버튼, 1순위 카드의 붉은 기운
+   정리: 작은 버튼·아바타·말풍선의 장식용 그라데이션을 단색으로, 작은 요소의 바깥 그림자 제거 */
+:root{--prim-flat:#2B2525;--glass-flat:rgba(255,255,255,.60);}
+:root[data-theme="dark"]{--prim-flat:#F4F1F1;--glass-flat:rgba(255,255,255,.10);}
+.pill-btn,.qr-trigger-btn,.theme-btn,.lt-btn,.route-btn,.chat-qk,.uc-av,
+:root[data-theme="dark"] .pill-btn,:root[data-theme="dark"] .qr-trigger-btn,:root[data-theme="dark"] .theme-btn,:root[data-theme="dark"] .lt-btn,
+:root[data-theme="dark"] .route-btn,:root[data-theme="dark"] .chat-qk,:root[data-theme="dark"] .uc-av{background:var(--glass-flat);}
+:root:not([data-theme="dark"]) .pill-btn,:root:not([data-theme="dark"]) .qr-trigger-btn,:root:not([data-theme="dark"]) .theme-btn,:root:not([data-theme="dark"]) .lt-btn,
+:root:not([data-theme="dark"]) .route-btn,:root:not([data-theme="dark"]) .chat-qk,:root:not([data-theme="dark"]) .uc-av,:root:not([data-theme="dark"]) .bubble.sys{box-shadow:var(--edge);}
+.pill-btn.primary,.lt-btn.active,.btn-search,.qr-close-btn,.bubble.user,.btn-send,.chat-panel-header,.ub[aria-expanded="true"],.uc-rw.is-on .uc-av,.uc-pg .uc-av.on,
+:root[data-theme="dark"] .pill-btn.primary,:root[data-theme="dark"] .lt-btn.active,:root[data-theme="dark"] .ub[aria-expanded="true"]{background:var(--prim-flat);}
+:root:not([data-theme="dark"]) .pill-btn.primary,:root:not([data-theme="dark"]) .lt-btn.active,:root:not([data-theme="dark"]) .btn-search,:root:not([data-theme="dark"]) .btn-send,:root:not([data-theme="dark"]) .ub[aria-expanded="true"]{box-shadow:inset 0 1.5px 1px rgba(255,255,255,.22);}
+.pill-btn.red,.hosp-rank.r1,.bed-crit,.route-btn.sos{background:var(--red);}
+.pill-btn.red{box-shadow:inset 0 1.5px 1px rgba(255,255,255,.4);}
+.eum .e{background-image:none;-webkit-background-clip:border-box;background-clip:border-box;color:var(--red);filter:none;}
+.uc-rw.is-on{background:rgba(255,60,60,.10);}
+:root[data-theme="dark"] .uc-rw.is-on{background:rgba(255,60,60,.16);}
 </style>
+<script>
+// 아이콘: Lucide (ISC 라이선스, https://lucide.dev). 글자색을 따라가는 선 아이콘
+const ICONS = {"tag": "<path d=\"M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z\" /> <circle cx=\"7.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" />", "x": "<path d=\"M18 6 6 18\" /> <path d=\"m6 6 12 12\" />", "car": "<path d=\"M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2\" /> <circle cx=\"7\" cy=\"17\" r=\"2\" /> <path d=\"M9 17h6\" /> <circle cx=\"17\" cy=\"17\" r=\"2\" />", "car-taxi-front": "<path d=\"M10 2h4\" /> <path d=\"m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8\" /> <path d=\"M7 14h.01\" /> <path d=\"M17 14h.01\" /> <rect width=\"18\" height=\"8\" x=\"3\" y=\"10\" rx=\"2\" /> <path d=\"M5 18v2\" /> <path d=\"M19 18v2\" />", "bus": "<path d=\"M8 6v6\" /> <path d=\"M15 6v6\" /> <path d=\"M2 12h19.6\" /> <path d=\"M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3\" /> <circle cx=\"7\" cy=\"18\" r=\"2\" /> <path d=\"M9 18h5\" /> <circle cx=\"16\" cy=\"18\" r=\"2\" />", "footprints": "<path d=\"M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z\" /> <path d=\"M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z\" /> <path d=\"M16 17h4\" /> <path d=\"M4 13h4\" />", "ambulance": "<path d=\"M10 10H6\" /> <path d=\"M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2\" /> <path d=\"M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14\" /> <path d=\"M8 8v4\" /> <path d=\"M9 18h6\" /> <circle cx=\"17\" cy=\"18\" r=\"2\" /> <circle cx=\"7\" cy=\"18\" r=\"2\" />", "mic": "<path d=\"M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z\" /> <path d=\"M19 10v2a7 7 0 0 1-14 0v-2\" /> <line x1=\"12\" x2=\"12\" y1=\"19\" y2=\"22\" />", "triangle-alert": "<path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\" /> <path d=\"M12 9v4\" /> <path d=\"M12 17h.01\" />", "hospital": "<path d=\"M12 6v4\" /> <path d=\"M14 14h-4\" /> <path d=\"M14 18h-4\" /> <path d=\"M14 8h-4\" /> <path d=\"M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h2\" /> <path d=\"M18 22V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v18\" />", "map-pin": "<path d=\"M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0\" /> <circle cx=\"12\" cy=\"10\" r=\"3\" />", "user": "<path d=\"M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2\" /> <circle cx=\"12\" cy=\"7\" r=\"4\" />", "circle-check": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"m9 12 2 2 4-4\" />", "siren": "<path d=\"M7 18v-6a5 5 0 1 1 10 0v6\" /> <path d=\"M5 21a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-1a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2z\" /> <path d=\"M21 12h1\" /> <path d=\"M18.5 4.5 18 5\" /> <path d=\"M2 12h1\" /> <path d=\"M12 2v1\" /> <path d=\"m4.929 4.929.707.707\" /> <path d=\"M12 12v6\" />", "bed": "<path d=\"M2 4v16\" /> <path d=\"M2 8h18a2 2 0 0 1 2 2v10\" /> <path d=\"M2 17h20\" /> <path d=\"M6 8v9\" />", "phone": "<path d=\"M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z\" />", "scissors": "<circle cx=\"6\" cy=\"6\" r=\"3\" /> <path d=\"M8.12 8.12 12 12\" /> <path d=\"M20 4 8.12 15.88\" /> <circle cx=\"6\" cy=\"18\" r=\"3\" /> <path d=\"M14.8 14.8 20 20\" />", "pill": "<path d=\"m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z\" /> <path d=\"m8.5 8.5 7 7\" />", "heart-pulse": "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\" /> <path d=\"M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27\" />", "activity": "<path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\" />", "rotate-cw": "<path d=\"M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8\" /> <path d=\"M21 3v5h-5\" />", "cake": "<path d=\"M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8\" /> <path d=\"M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1\" /> <path d=\"M2 21h20\" /> <path d=\"M7 8v3\" /> <path d=\"M12 8v3\" /> <path d=\"M17 8v3\" /> <path d=\"M7 4h.01\" /> <path d=\"M12 4h.01\" /> <path d=\"M17 4h.01\" />", "users-round": "<path d=\"M18 21a8 8 0 0 0-16 0\" /> <circle cx=\"10\" cy=\"8\" r=\"5\" /> <path d=\"M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3\" />", "building-2": "<path d=\"M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z\" /> <path d=\"M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2\" /> <path d=\"M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2\" /> <path d=\"M10 6h4\" /> <path d=\"M10 10h4\" /> <path d=\"M10 14h4\" /> <path d=\"M10 18h4\" />", "search": "<circle cx=\"11\" cy=\"11\" r=\"8\" /> <path d=\"m21 21-4.3-4.3\" />", "circle-dot": "<circle cx=\"12\" cy=\"12\" r=\"10\" /> <circle cx=\"12\" cy=\"12\" r=\"1\" />", "map": "<path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /> <path d=\"M15 5.764v15\" /> <path d=\"M9 3.236v15\" />", "star": "<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\" />"};
+function ic(n){ return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">' + (ICONS[n]||'') + '</svg>'; }
+</script>
 </head>
 <body>
 <!-- 시작 화면: 유리 배경 위에 E-um이 올라오고, 상단 로고 자리로 모핑되며 서비스 화면이 열림 -->
@@ -897,7 +939,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
   <div class="chat-qs" id="chatQs"></div>
 
   <div class="chat-input-wrap">
-    <div class="voice-status" id="voiceStatus">녹음 중<span class="voice-timer" id="voiceTimer">5</span>초</div>
+    <div class="voice-status" id="voiceStatus">녹음 중<span class="voice-wave" id="voiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-timer" id="voiceTimer">5</span>초</div>
     <textarea class="chat-input" id="chatIn" rows="1" placeholder="증상을 입력하세요" aria-label="증상 입력" autocomplete="off" enterkeyhint="send"></textarea>
     <span class="chat-ring" id="chatRing" aria-hidden="true"><svg viewBox="0 0 30 30"><circle class="bg" cx="15" cy="15" r="12"/><circle class="fg" cx="15" cy="15" r="12"/></svg><span class="chat-left" id="chatLeft"></span></span>
     <button class="btn-icon btn-voice" id="voiceBtn" type="button" onclick="toggleVoice()" title="음성 입력" aria-label="음성 입력">
@@ -912,7 +954,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
 <!-- QR 의료정보 모달 -->
 <div class="qr-modal" id="qrModal" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
   <div class="qr-box">
-    <h3 id="qrTitle">🏷️ 응급 의료정보 QR</h3>
+    <h3 id="qrTitle"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" /> <circle cx="7.5" cy="7.5" r=".5" fill="currentColor" /></svg> 응급 의료정보 QR</h3>
     <p id="qrSub">다른 휴대폰 카메라로 스캔하면 환자 정보 조회 페이지가 열려요</p>
     <div id="qrStage" aria-live="polite">
       <div class="qr-spin" id="qrSpin" hidden></div>
@@ -926,6 +968,20 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
       <button class="pill-btn primary" id="qrRetryBtn" type="button" hidden>다시 시도</button>
       <button class="pill-btn" id="qrRevokeBtn" type="button" hidden>QR 폐기</button>
       <button class="qr-close-btn" id="qrCloseBtn" type="button" onclick="closeQrModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 요약 이미지 -->
+<div class="qr-modal" id="sumModal" role="dialog" aria-modal="true" aria-labelledby="sumTitle" onclick="if(event.target===this)closeSummary()">
+  <div class="qr-box sum-box">
+    <h3 id="sumTitle">응급 요약 이미지</h3>
+    <p>필요할 때만 저장하는 기능이에요. 저장하기 전에 미리 볼 수 있어요.</p>
+    <canvas id="sumCanvas" class="sum-cv" width="1080" height="1440" aria-label="요약 이미지 미리보기"></canvas>
+    <label class="sum-opt"><input type="checkbox" id="sumPatient"><span>환자 정보 포함</span></label>
+    <div class="qr-actions">
+      <button class="pill-btn primary" type="button" id="sumSave">이미지로 저장</button>
+      <button class="qr-close-btn" type="button" onclick="closeSummary()">닫기</button>
     </div>
   </div>
 </div>
@@ -1033,25 +1089,25 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
             <div class="route-modal-title" id="routeHospName">병원명</div>
             <div class="route-modal-sub" id="routeHospAddr">주소</div>
           </div>
-          <button class="route-modal-close" onclick="closeRouteModal()">✕</button>
+          <button class="route-modal-close" onclick="closeRouteModal()" aria-label="닫기"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></svg></button>
         </div>
         <!-- 병원 상세 정보 -->
         <div id="routeHospDetail"></div>
         <div class="route-btns">
           <button class="route-btn" onclick="openRoute('car')">
-            <span class="route-btn-icon">🚗</span><span>자동차</span>
+            <span class="route-btn-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" /> <circle cx="7" cy="17" r="2" /> <path d="M9 17h6" /> <circle cx="17" cy="17" r="2" /></svg></span><span>자동차</span>
           </button>
           <button class="route-btn" onclick="openRoute('taxi')">
-            <span class="route-btn-icon">🚕</span><span>택시</span>
+            <span class="route-btn-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2h4" /> <path d="m21 8-2 2-1.5-3.7A2 2 0 0 0 15.646 5H8.4a2 2 0 0 0-1.903 1.257L5 10 3 8" /> <path d="M7 14h.01" /> <path d="M17 14h.01" /> <rect width="18" height="8" x="3" y="10" rx="2" /> <path d="M5 18v2" /> <path d="M19 18v2" /></svg></span><span>택시</span>
           </button>
           <button class="route-btn" onclick="openRoute('transit')">
-            <span class="route-btn-icon">🚌</span><span>대중교통</span>
+            <span class="route-btn-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6v6" /> <path d="M15 6v6" /> <path d="M2 12h19.6" /> <path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3" /> <circle cx="7" cy="18" r="2" /> <path d="M9 18h5" /> <circle cx="16" cy="18" r="2" /></svg></span><span>대중교통</span>
           </button>
           <button class="route-btn" onclick="openRoute('walk')">
-            <span class="route-btn-icon">🚶</span><span>도보</span>
+            <span class="route-btn-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 10 3.8 10 5.5c0 3.11-2 5.66-2 8.68V16a2 2 0 1 1-4 0Z" /> <path d="M20 20v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 6 14 7.8 14 9.5c0 3.11 2 5.66 2 8.68V20a2 2 0 1 0 4 0Z" /> <path d="M16 17h4" /> <path d="M4 13h4" /></svg></span><span>도보</span>
           </button>
           <button class="route-btn sos" onclick="call119()">
-            <span class="route-btn-icon">🚑</span><span>119 신고</span>
+            <span class="route-btn-icon"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 10H6" /> <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" /> <path d="M19 18h2a1 1 0 0 0 1-1v-3.28a1 1 0 0 0-.684-.948l-1.923-.641a1 1 0 0 1-.578-.502l-1.539-3.076A1 1 0 0 0 16.382 8H14" /> <path d="M8 8v4" /> <path d="M9 18h6" /> <circle cx="17" cy="18" r="2" /> <circle cx="7" cy="18" r="2" /></svg></span><span>119 신고</span>
           </button>
         </div>
         <div class="route-info-row">
@@ -1090,6 +1146,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
         <div class="best-actions">
           <button onclick="openRouteModal(0)" class="pill-btn primary go">지금 출발</button>
           <button id="bestHospCallBtn" onclick="" class="pill-btn sub">전화</button>
+          <button onclick="openSummary()" class="pill-btn sub" id="sumBtn">요약 이미지</button>
           <button onclick="openDemoModal()" class="pill-btn sub danger">119 (시연)</button>
         </div>
       </div>
@@ -1294,46 +1351,78 @@ async function toggleVoice(){if(isRecording){stopRecording();}else{await startRe
 async function startRecording(){
   if(!navigator.mediaDevices?.getUserMedia){appendBubble('마이크를 지원하지 않는 브라우저입니다.','voice-info');return;}
 
-  // Capacitor 앱 환경: 마이크 런타임 권한 먼저 요청
-  if(window.Capacitor && window.Capacitor.isNativePlatform()){
-    try{
-      // getUserMedia 자체가 Android에서 권한 다이얼로그를 트리거함
-      // 단, 권한이 거부된 상태면 catch로 떨어짐
-      const testStream = await navigator.mediaDevices.getUserMedia({audio:true});
-      testStream.getTracks().forEach(t=>t.stop()); // 테스트 스트림 즉시 해제
-    }catch(e){
-      appendBubble('🎤 마이크 권한이 필요합니다. 설정 → 앱 → 응급실 추천 → 권한에서 마이크를 허용해 주세요.','voice-info');
-      return;
-    }
-  }
-
   let stream;
-  try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}
-  catch(e){appendBubble('마이크 권한이 없어 브라우저 음성인식으로 전환합니다.','voice-info');startWebSpeech();return;}
+  try{ stream = await navigator.mediaDevices.getUserMedia({audio:true}); }
+  catch(e){ voiceHelp(e); return; }
 
+  if(!window.MediaRecorder){
+    stream.getTracks().forEach(t=>t.stop());
+    appendBubble('이 브라우저는 녹음 기능이 없어 브라우저 음성인식으로 바꿔요.','voice-info'); startWebSpeech(); return;
+  }
   audioChunks=[];
-  const mime=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/ogg;codecs=opus';
-  try{mediaRecorder=new MediaRecorder(stream,{mimeType:mime});}catch{mediaRecorder=new MediaRecorder(stream);}
+  // 아이폰 Safari는 webm 대신 mp4(aac)로만 녹음돼서, 지원하는 형식을 골라 쓴다
+  let mime='';
+  for(const m of ['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus']){
+    try{ if(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)){ mime=m; break; } }catch(e){}
+  }
+  try{ mediaRecorder = mime ? new MediaRecorder(stream,{mimeType:mime}) : new MediaRecorder(stream); }
+  catch(e){ try{ mediaRecorder = new MediaRecorder(stream); }catch(e2){ stream.getTracks().forEach(t=>t.stop()); voiceHelp(e2); return; } }
   mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
-  mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());await sendToSTT(new Blob(audioChunks,{type:mediaRecorder.mimeType}));};
+  mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());const type=((mediaRecorder.mimeType||mime||'audio/webm').split(';')[0]);await sendToSTT(new Blob(audioChunks,{type}),type);};
   mediaRecorder.start(100);
+  startWave(stream);
   isRecording=true;setVoiceUI(true);
 
   let rem=5;document.getElementById('voiceTimer').textContent=rem;
   voiceTimerInterval=setInterval(()=>{rem--;document.getElementById('voiceTimer').textContent=rem;if(rem<=0){clearInterval(voiceTimerInterval);stopRecording();}},1000);
 }
 
-function stopRecording(){clearInterval(voiceTimerInterval);isRecording=false;setVoiceUI(false);if(mediaRecorder?.state==='recording')mediaRecorder.stop();}
+function stopRecording(){stopWave();clearInterval(voiceTimerInterval);isRecording=false;setVoiceUI(false);if(mediaRecorder?.state==='recording')mediaRecorder.stop();}
 
+let _wave={raf:0,ctx:null};
+function startWave(stream){
+  const st=document.getElementById('voiceStatus');
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext; const ctx=new AC();
+    const src=ctx.createMediaStreamSource(stream), an=ctx.createAnalyser(); an.fftSize=64; src.connect(an);
+    const data=new Uint8Array(an.frequencyBinCount), bars=[...st.querySelectorAll('.voice-wave i')];
+    st.classList.remove('sim'); _wave.ctx=ctx;
+    const loop=()=>{ an.getByteFrequencyData(data); bars.forEach((b,i)=>{ const v=data[2+i*2]/255; b.style.transform='scaleY('+(0.22+v*0.78).toFixed(2)+')'; }); _wave.raf=requestAnimationFrame(loop); };
+    loop();
+  }catch(e){ st.classList.add('sim'); }
+}
+function stopWave(){
+  cancelAnimationFrame(_wave.raf);
+  try{ _wave.ctx && _wave.ctx.close(); }catch(e){}
+  _wave.ctx=null;
+  document.querySelectorAll('#voiceWave i').forEach(b=>{ b.style.transform=''; });
+}
 function setVoiceUI(on){
+  { const st=document.getElementById('voiceStatus'); if(on && !_wave.ctx) st.classList.add('sim'); if(!on){ st.classList.remove('sim'); stopWave(); } }
   document.getElementById('voiceBtn').classList.toggle('recording',on);
   document.getElementById('voiceStatus').classList.toggle('show',on);
 }
 
-async function sendToSTT(blob){
+function voiceHelp(err){
+  const n = (err && err.name) || '';
+  const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const app = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform());
+  let why, how;
+  if(n === 'NotAllowedError' || n === 'SecurityError'){
+    why = '마이크 권한이 꺼져 있어요';
+    how = app ? '설정 앱의 이 앱 항목에서 마이크를 허용해 주세요.'
+        : ios ? 'Safari라면 주소창 왼쪽의 aA, 웹사이트 설정, 마이크를 허용으로 바꿔 주세요. 크롬 앱이라면 설정 앱의 Chrome 항목에서 마이크를 켜 주세요.'
+        : '주소창 왼쪽 자물쇠 아이콘을 눌러 마이크를 허용으로 바꿔 주세요.';
+  } else if(n === 'NotFoundError'){ why = '마이크를 찾지 못했어요'; how = '마이크가 연결돼 있는지 확인해 주세요.'; }
+  else if(n === 'NotReadableError'){ why = '다른 앱이 마이크를 쓰고 있어요'; how = '통화나 녹음 중인 앱을 닫고 다시 눌러 주세요.'; }
+  else { why = '마이크를 켜지 못했어요'; how = '잠시 후 다시 시도해 주세요.'; }
+  appendBubble('<strong>' + why + '</strong><br>' + how + '<br>키보드로 증상을 입력해도 똑같이 분류해 드려요.<br><em>원인 코드: ' + escHtml(n || String(err)) + '</em>', 'voice-info');
+}
+
+async function sendToSTT(blob, type){
   appendBubble('음성 분석 중...','voice-info');
   try{
-    const fd=new FormData();fd.append('audio',blob,'rec.webm');
+    const fd=new FormData();fd.append('audio',blob,'rec.'+((type||'').includes('mp4')?'m4a':(type||'').includes('ogg')?'ogg':'webm'));
     const res=await fetch(`${BACKEND_URL}/stt`,{method:'POST',body:fd});
     if(!res.ok)throw new Error('STT 서버 오류');
     const data=await res.json();
@@ -1343,18 +1432,18 @@ async function sendToSTT(blob){
     appendBubble(`인식: "${text}"`,'voice-info');
     setTimeout(()=>sendChat(),300);
   }catch(e){
-    appendBubble('⚠️ Whisper STT 연결 실패. 브라우저 음성인식으로 전환합니다.','voice-info');
+    appendBubble(ic('triangle-alert') + ' 음성 분석 서버에 연결하지 못해 브라우저 음성인식으로 바꿔요. (' + escHtml(e && e.message || '') + ')','voice-info');
     startWebSpeech();
   }
 }
 
 function startWebSpeech(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){appendBubble('음성인식이 지원되지 않습니다. Chrome을 사용해 주세요.','voice-info');return;}
+  if(!SR){appendBubble('이 브라우저는 음성인식을 지원하지 않아요. 키보드로 입력해 주세요.','voice-info');return;}
   const r=new SR();r.lang='ko-KR';r.continuous=false;r.interimResults=false;
   setVoiceUI(true);r.start();
   r.onresult=e=>{const t=e.results[0][0].transcript.trim();document.getElementById('chatIn').value=t;appendBubble(`인식 (브라우저): "${t}"`,'voice-info');setVoiceUI(false);setTimeout(()=>sendChat(),300);};
-  r.onerror=e=>{setVoiceUI(false);appendBubble(`음성 오류: ${e.error}`,'voice-info');};
+  r.onerror=e=>{setVoiceUI(false);const x=e.error; if(x==='not-allowed'||x==='service-not-allowed') voiceHelp({name:'NotAllowedError'}); else if(x==='no-speech') appendBubble('목소리가 들리지 않았어요. 다시 눌러 말씀해 주세요.','voice-info'); else appendBubble('음성 오류: '+escHtml(x||''),'voice-info');};
   r.onend=()=>setVoiceUI(false);
 }
 
@@ -1776,7 +1865,7 @@ function ucFormPage(title) {
     <div class="uf-rel">
       <label for="modal-hospital-search">기존에 다니던 병원</label>
       <input type="text" id="modal-hospital-search" placeholder="병원명 검색 (예: 세브란스병원)" autocomplete="off" oninput="searchHospitalKakao(this.value)">
-      <div id="modal-hospital-selected"><span id="modal-hospital-selected-name"></span><button type="button" onclick="clearHospitalSelection()" aria-label="선택 해제">✕</button></div>
+      <div id="modal-hospital-selected"><span id="modal-hospital-selected-name"></span><button type="button" onclick="clearHospitalSelection()" aria-label="선택 해제"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18" /> <path d="m6 6 12 12" /></svg></button></div>
       <input type="hidden" id="modal-hospital">
       <div id="modal-hospital-dropdown"></div>
     </div>
@@ -2009,8 +2098,8 @@ function selectHospital(idx) {
   document.getElementById('modal-hospital').value = item.place_name;
 
   // 선택 표시 UI
-  document.getElementById('modal-hospital-selected-name').textContent =
-    `🏥 ${item.place_name}  📍 ${item.address_name}`;
+  document.getElementById('modal-hospital-selected-name').innerHTML =
+    `${ic('hospital')} ${escHtml(item.place_name)} &nbsp; ${ic('map-pin')} ${escHtml(item.address_name)}`;
   document.getElementById('modal-hospital-selected').style.display = 'block';
 
   // 검색창 초기화 & 드롭다운 닫기
@@ -2048,8 +2137,8 @@ function updateHospitalPriorityLabel(val) {
 
   if (label) label.textContent = cfg.label;
   if (desc) {
-    const forceNote = forceCheck?.checked ? ' ⚠️ 중증 시에도 이 병원 우선 적용 (체크됨)' : ' 🟢 중증(KTAS 1~2) 시엔 최근접 병원 우선';
-    desc.textContent = cfg.desc + forceNote;
+    const forceNote = forceCheck?.checked ? ic('triangle-alert') + ' 중증 시에도 이 병원 우선 적용 (체크됨)' : ic('circle-dot') + ' 중증(KTAS 1~2) 시엔 최근접 병원 우선';
+    desc.innerHTML = escHtml(cfg.desc) + ' ' + forceNote;
   }
 }
 
@@ -2085,7 +2174,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(profile && profile.name){
     const condStr = (profile.conditions||[]).length ? ` · 기저질환 ${profile.conditions.length}개 반영` : '';
     setTimeout(()=>appendBubble(
-      `👤 <strong>${profile.name}</strong>님 프로파일 로드됨${condStr}.<br>증상을 입력하시면 맞춤 분류를 시작합니다.`,'sys'
+      `${ic('user')} <strong>${escHtml(profile.name)}</strong>님 프로파일 로드됨${condStr}.<br>증상을 입력하시면 맞춤 분류를 시작합니다.`,'sys'
     ), 300);
   }
 
@@ -2206,24 +2295,24 @@ function showPanicHospitalCard(profile) {
 
     const specBadges = (best.specialties||[]).slice(0,4).map(s=>`<span style="display:inline-block;padding:1px 7px;background:var(--tint);color:var(--ink);border-radius:6px;font-size:var(--fs-2xs);margin:2px 2px 0 0;">${s}</span>`).join('');
     const matchBadge = specialty && (best.specialties||[]).some(s=>s.includes(specialty.replace(/과$/,'')))
-      ? `<div style="font-size:var(--fs-xs);color:var(--mute);margin:6px 0;">✅ <strong>${specialty}</strong> 진료 가능 (기저질환 매칭)</div>` : '';
+      ? `<div style="font-size:var(--fs-xs);color:var(--mute);margin:6px 0;">${ic('circle-check')} <strong>${specialty}</strong> 진료 가능 (기저질환 매칭)</div>` : '';
     const bedColor = {ok:'var(--mute)',warn:'var(--busy)',crit:'var(--red)'}[best.available]||'var(--mute)';
     const hospIdx = hospitals.indexOf(best);
 
     const cardHtml = `
 <div style="background:var(--red-soft);border-radius:12px;padding:14px 16px;margin-top:8px;">
-  <div style="font-size:var(--fs-sm);font-weight:600;color:var(--busy);margin-bottom:8px;">🚨 즉시 이동 추천 병원</div>
+  <div style="font-size:var(--fs-sm);font-weight:600;color:var(--busy);margin-bottom:8px;">${ic('siren')} 즉시 이동 추천 병원</div>
   <div style="font-size:var(--fs-base);font-weight:700;color:var(--ink);margin-bottom:2px;">${best.name}</div>
   <div style="font-size:var(--fs-2xs);color:var(--mute);margin-bottom:6px;">${best.address||''}</div>
   <div style="margin-bottom:6px;">${specBadges||'<span style="font-size:var(--fs-2xs);color:var(--faint);">진료과 정보 없음</span>'}</div>
   ${matchBadge}
   <div style="display:flex;gap:14px;font-size:var(--fs-xs);color:var(--mute);margin-bottom:10px;flex-wrap:wrap;">
-    <span>📍 ${best.dist}km</span>
+    <span>${ic('map-pin')} ${best.dist}km</span>
     <span>⏱️ 약 ${best.eta}분</span>
-    <span>🛏️ <span style="color:${bedColor};font-weight:600;">${bedText(best)}</span></span>
-    ${best.phone ? `<span>📞 ${best.phone}</span>` : ''}
+    <span>${ic('bed')} <span style="color:${bedColor};font-weight:600;">${bedText(best)}</span></span>
+    ${best.phone ? `<span>${ic('phone')} ${best.phone}</span>` : ''}
   </div>
-  <button onclick="openRouteModal(${hospIdx})" style="width:100%;padding:10px;background:var(--busy);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🗺 지금 바로 출발</button>
+  <button onclick="openRouteModal(${hospIdx})" style="width:100%;padding:10px;background:var(--busy);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">${ic('map')} 지금 바로 출발</button>
 </div>`;
     appendBubble(cardHtml, 'ai');
 
@@ -2231,11 +2320,11 @@ function showPanicHospitalCard(profile) {
     // 병원 데이터 없을 때: 검색 유도
     appendBubble(`
 <div style="background:var(--red-soft);border-radius:12px;padding:14px 16px;margin-top:8px;">
-  <div style="font-size:var(--fs-sm);font-weight:600;color:var(--busy);margin-bottom:6px;">🚨 즉시 응급실로 이동하세요</div>
+  <div style="font-size:var(--fs-sm);font-weight:600;color:var(--busy);margin-bottom:6px;">${ic('siren')} 즉시 응급실로 이동하세요</div>
   <div style="font-size:var(--fs-xs);color:var(--mute);margin-bottom:10px;">위치 정보를 가져오는 중입니다. 아래 버튼으로 주변 응급실을 검색하거나 119에 신고하세요.</div>
   <div style="display:flex;gap:8px;">
-    <button onclick="runSearch()" style="flex:1;padding:9px;background:var(--busy);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🔍 응급실 검색</button>
-    <button onclick="openDemoModal()" style="flex:1;padding:9px;background:var(--red-dark);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🚑 119 신고</button>
+    <button onclick="runSearch()" style="flex:1;padding:9px;background:var(--busy);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">${ic('search')} 응급실 검색</button>
+    <button onclick="openDemoModal()" style="flex:1;padding:9px;background:var(--red-dark);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">${ic('ambulance')} 119 신고</button>
   </div>
 </div>`, 'ai');
   }
@@ -2322,11 +2411,12 @@ async function runSearch(){
     return;
   }
 
+  trackBeds(rawHospitals);
   const anyRt = rawHospitals.some(bedKnown);
   const scored=rawHospitals.map(h=>{
     let sc=calcScore(h,detKtas,detDept);
     if(anyRt && !bedKnown(h)){ h._raw -= 12; sc = Math.max(1, sc - 12); }   // 병상 정보를 확인할 수 없는 병원은 확인된 병원보다 조금 뒤에
-    return {...h,score:sc,_raw:h._raw};
+    return {...h,score:sc,_raw:h._raw,_bedDelta:h._bedDelta,_bedFrom:h._bedFrom};
   });
   scored.sort((a,b)=>(b.score-a.score)||((b._raw||0)-(a._raw||0)));
   const top5=scored.slice(0,5);
@@ -2355,6 +2445,106 @@ async function runSearch(){
   document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+window._bedPrev = window._bedPrev || {};
+function bedKey(h){ return h.hpid || h.name; }
+function trackBeds(list){
+  list.forEach(h=>{
+    const k = bedKey(h), p = window._bedPrev[k];
+    h._bedFrom = p;
+    h._bedDelta = (bedKnown(h) && p != null) ? h.availBeds - p : 0;
+    if(bedKnown(h)) window._bedPrev[k] = h.availBeds;
+  });
+}
+function bedDeltaHtml(h){
+  const d = h._bedDelta || 0; if(!d) return '';
+  return '<span class="bed-delta ' + (d>0?'up':'down') + '"><svg viewBox="0 0 24 24"><path d="' + (d>0?'m18 15-6-6-6 6':'m6 9 6 6 6-6') + '"/></svg>' + Math.abs(d) + '</span>';
+}
+function animateBed(el,h){
+  const from = h._bedFrom, to = h.availBeds;
+  if(from==null || from===to || to<=0 || !el.firstChild || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const t0 = performance.now(), node = el.firstChild;
+  const step = now => { const p = Math.min(1,(now-t0)/700); node.nodeValue = '병상 ' + Math.round(from + (to-from)*(1-Math.pow(1-p,3))) + '개'; if(p<1) requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+}
+function _wrapText(ctx, text, maxW){
+  const out=[]; let line='';
+  for(const ch of Array.from(String(text||''))){
+    const t=line+ch;
+    if(ctx.measureText(t).width>maxW && line){ out.push(line.trim()); line=ch===' '?'':ch; } else line=t;
+  }
+  if(line.trim()) out.push(line.trim());
+  return out;
+}
+function _rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function drawSummary(cv, withPatient){
+  const ctx=cv.getContext('2d'), W=cv.width, H=cv.height, F="'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
+  const INK='#292222', MUTE='#7A7474', RED='#FF0000', TINT='rgba(41,34,34,.07)';
+  ctx.fillStyle='#F3F1F1'; ctx.fillRect(0,0,W,H);
+  const g=ctx.createRadialGradient(W*.92,H*.04,0,W*.92,H*.04,W*.7); g.addColorStop(0,'rgba(255,70,70,.16)'); g.addColorStop(1,'rgba(255,70,70,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  let y=96; const X=72, CW=W-X*2;
+  ctx.textBaseline='alphabetic';
+  ctx.font='800 64px '+F; ctx.fillStyle=RED; ctx.fillText('E',X,y); const ew=ctx.measureText('E').width; ctx.fillStyle=INK; ctx.fillText('-um',X+ew,y);
+  ctx.font='600 28px '+F; ctx.fillStyle=MUTE; ctx.fillText('개별 환자 응급실 추천',X+ew+ctx.measureText('-um').width+24,y);
+  const now=new Date(), ts=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  ctx.font='600 26px '+F; ctx.textAlign='right'; ctx.fillText(ts,W-X,y); ctx.textAlign='left';
+  y+=44;
+  const card=(h,draw)=>{ ctx.save(); ctx.shadowColor='rgba(41,34,34,.10)'; ctx.shadowBlur=40; ctx.shadowOffsetY=14; ctx.fillStyle='rgba(255,255,255,.92)'; _rr(ctx,X,y,CW,h,48); ctx.fill(); ctx.restore(); draw(X+44,y+44,CW-88); y+=h+28; };
+  const pill=(txt,x,yy,strong)=>{ ctx.font='700 28px '+F; const w=ctx.measureText(txt).width+44; ctx.fillStyle=strong?INK:TINT; _rr(ctx,x,yy,w,56,28); ctx.fill(); ctx.fillStyle=strong?'#fff':INK; ctx.fillText(txt,x+22,yy+38); return w+12; };
+  // KTAS
+  const k=window._ktasInfo;
+  const kLines=[]; ctx.font='600 30px '+F;
+  let kHead='증상 분류 전', kSub='';
+  if(k && k.panic){ kHead='위험 신호 감지 (KTAS 1~2 의심)'; kSub=(k.signals||[]).join(', '); }
+  else if(k){ kHead='KTAS '+k.level+'단계 '+k.label+(k.cc?' · '+k.cc:''); kSub=(k.steps&&k.steps.length?k.steps.map(x=>String(x).trim().replace(/[.。]?$/,'.')).join(' '):(k.reason||'')); }
+  const subLines=_wrapText(ctx,kSub,CW-88).slice(0,4);
+  card(130+subLines.length*44,(x,yy,w)=>{ ctx.font='800 44px '+F; ctx.fillStyle=INK; ctx.fillText(kHead,x,yy+44); ctx.font='500 30px '+F; ctx.fillStyle=MUTE; subLines.forEach((l,i)=>ctx.fillText(l,x,yy+100+i*44)); });
+  // 병원
+  const h=window._bestHosp;
+  if(h){
+    const addr=_wrapText(ctx,h.address||'',CW-88).slice(0,2);
+    card(250+addr.length*40,(x,yy,w)=>{
+      ctx.font='700 26px '+F; ctx.fillStyle=RED; ctx.fillText('최적 응급실 추천',x,yy+26);
+      ctx.font='800 54px '+F; ctx.fillStyle=INK; ctx.fillText(h.name,x,yy+98);
+      ctx.font='500 28px '+F; ctx.fillStyle=MUTE; addr.forEach((l,i)=>ctx.fillText(l,x,yy+146+i*40));
+      let px=x, py=yy+170+addr.length*40-20; 
+      px+=pill(h.dist+'km',px,py,false); px+=pill('약 '+h.eta+'분',px,py,false); px+=pill(bedText(h),px,py,false); px+=pill('적합도 '+h.score+'/100',px,py,true);
+    });
+  } else { card(120,(x,yy)=>{ ctx.font='700 34px '+F; ctx.fillStyle=MUTE; ctx.fillText('추천 병원 정보가 아직 없어요',x,yy+52); }); }
+  // 환자
+  if(withPatient){
+    const p=(typeof getActiveProfile==='function')?getActiveProfile():null;
+    if(p && !p._isGuest){
+      const fmtL=(arr,none)=>Array.isArray(arr)&&arr.length?arr.join(', '):(none?'없음':'미입력');
+      const rows=[['이름',p.name||'미입력'],['나이·성별',(Number.isInteger(p.age)?p.age+'세':'나이 미입력')+' · '+(p.gender||'성별 미입력')],['기저질환',fmtL(p.conditions,p.conditions_none)],['복용 중인 약',fmtL(p.medications,p.medications_none)],['알레르기',fmtL(p.allergies,p.allergies_none)]];
+      ctx.font='600 30px '+F; const wrapped=rows.map(r=>[r[0],_wrapText(ctx,r[1],CW-88-230).slice(0,2)]);
+      const hh=60+wrapped.reduce((a,r)=>a+Math.max(1,r[1].length)*42+22,0);
+      card(hh,(x,yy)=>{ let ry=yy+30; wrapped.forEach(r=>{ ctx.font='700 26px '+F; ctx.fillStyle=MUTE; ctx.fillText(r[0],x,ry+6); ctx.font='600 30px '+F; ctx.fillStyle=INK; (r[1].length?r[1]:['']).forEach((l,i)=>ctx.fillText(l,x+230,ry+6+i*42)); ry+=Math.max(1,r[1].length)*42+22; }); });
+    }
+  }
+  ctx.font='500 24px '+F; ctx.fillStyle=MUTE; ctx.textAlign='center';
+  ctx.fillText('졸업 프로젝트 시연 화면이에요. 실제 의료 판단과 119 신고를 대신하지 않아요.',W/2,H-60); ctx.textAlign='left';
+}
+function openSummary(){
+  const m=document.getElementById('sumModal'), cv=document.getElementById('sumCanvas'), cb=document.getElementById('sumPatient');
+  cb.checked=false;
+  const redraw=()=>drawSummary(cv,cb.checked);
+  cb.onchange=redraw; redraw();
+  document.getElementById('sumSave').onclick=saveSummary;
+  m.classList.add('show');
+}
+function closeSummary(){ document.getElementById('sumModal').classList.remove('show'); }
+async function saveSummary(){
+  const cv=document.getElementById('sumCanvas');
+  const blob=await new Promise(r=>cv.toBlob(r,'image/png'));
+  if(!blob){ showToast('이미지를 만들지 못했어요'); return; }
+  const name='E-um_응급요약_'+Date.now()+'.png';
+  try{
+    const file=new File([blob],name,{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:'응급 요약'}); return; }
+  }catch(e){ if(e && e.name==='AbortError') return; }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000); showToast('이미지를 저장했어요');
+}
 function setLive(state, txt){
   const p=document.getElementById('liveStatus'), c=document.getElementById('liveChip');
   if(p){ p.dataset.state=state; document.getElementById('liveTxt').textContent=txt; }
@@ -2529,6 +2719,7 @@ async function fetchEmer(lat,lng,deptKey){
       });
 
       return {
+        hpid:           item.hpid || '',
         name:           item.name,
         address:        item.address,
         phone:          item.phone,
@@ -2642,7 +2833,7 @@ function renderHospList(hospitals,isCrit){
     const specialtyBadgesHtml = specialties.length > 0
       ? specialties.map(sp => {
           const isMatch = patientSpecialty && sp === patientSpecialty;
-          return `<span style="display:inline-block;font-size:var(--fs-2xs);padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;background:${isMatch?'var(--red-soft)':'var(--tint)'};color:${isMatch?'var(--red-deep)':'var(--mute)'};font-weight:${isMatch?'600':'400'};">${isMatch?'✅ ':''}${sp}</span>`;
+          return `<span style="display:inline-block;font-size:var(--fs-2xs);padding:2px 7px;border-radius:10px;margin:2px 2px 0 0;background:${isMatch?'var(--red-soft)':'var(--tint)'};color:${isMatch?'var(--red-deep)':'var(--mute)'};font-weight:${isMatch?'600':'400'};">${isMatch?ic('circle-check')+' ':''}${sp}</span>`;
         }).join('')
       : '<span style="font-size:var(--fs-2xs);color:var(--faint);">특수과 정보 없음</span>';
 
@@ -2666,7 +2857,7 @@ function renderHospList(hospitals,isCrit){
         </div>
       </div>
       <div class="hosp-right">
-        <div class="bed-badge ${bedKnown(h)?bedClass[h.available]:''}">${bedText(h)}</div>
+        <div class="bed-badge ${bedKnown(h)?bedClass[h.available]:''}">${bedText(h)}${bedDeltaHtml(h)}</div>
         <div class="score-bar"><div class="score-fill" style="width:${h.score}%"></div></div>
         <div style="font-size:var(--fs-2xs);color:var(--mute);margin-top:4px;text-align:right;font-weight:700;">적합도 ${h.score}점</div>
         <div style="font-size:var(--fs-2xs);color:var(--text-hint);margin-top:3px;text-align:right;">${!h.real?'참고용':''}</div>
@@ -2728,7 +2919,8 @@ function renderBestHospCard(hospitals, isCrit) {
 
   const bedColor = {ok:'var(--green)',warn:'var(--amber)',crit:'var(--red)'}[h.available] || 'var(--text-sub)';
   const bedEl = document.getElementById('bestHospBed');
-  if (bedEl) { bedEl.textContent = bedText(h); bedEl.style.color = bedKnown(h) ? bedColor : 'var(--text-sub)'; }
+  if (bedEl) { bedEl.textContent = bedText(h); bedEl.style.color = bedKnown(h) ? bedColor : 'var(--text-sub)';
+    window._bestHosp = h; bedEl.insertAdjacentHTML('beforeend', bedDeltaHtml(h)); animateBed(bedEl, h); }
 
   const profile   = (typeof getActiveProfile === 'function') ? getActiveProfile() : null;
   const specialty = (typeof getSpecialtyFromConditions === 'function')
@@ -2762,10 +2954,10 @@ function renderBestHospCard(hospitals, isCrit) {
   const callBtn = document.getElementById('bestHospCallBtn');
   if (callBtn) {
     if (h.phone) {
-      callBtn.textContent = `📞 ${h.phone}`;
+      callBtn.innerHTML = ic('phone') + ' ' + escHtml(h.phone);
       callBtn.onclick = () => location.href = `tel:${h.phone}`;
     } else {
-      callBtn.textContent = '📞 전화 정보 없음';
+      callBtn.innerHTML = ic('phone') + ' 전화 정보 없음';
       callBtn.disabled = true;
       callBtn.style.opacity = '0.4';
     }
@@ -2823,7 +3015,7 @@ function openRouteModal(idx){
     return typeof r==='object' ? r.name : r;
   })();
   const isRegular = regName && h.name.includes(regName.replace(/병원|의원|센터/g,'').trim());
-  const regularBadge = isRegular ? '<span style="display:inline-block;padding:2px 8px;background:var(--red-soft);color:var(--red-deep);border-radius:8px;font-size:var(--fs-2xs);font-weight:600;">⭐ 기존 진료 병원</span>' : '';
+  const regularBadge = isRegular ? '<span style="display:inline-block;padding:2px 8px;background:var(--red-soft);color:var(--red-deep);border-radius:8px;font-size:var(--fs-2xs);font-weight:600;">' + ic('star') + ' 기존 진료 병원</span>' : '';
 
   // 중증질환 수용가능 배지
   const seriousHtml = (h.serious_accept||[]).length
@@ -2832,8 +3024,8 @@ function openRouteModal(idx){
 
   // 수술실/ICU 정보
   const extraBeds = [];
-  if(h.surgeryBeds > 0) extraBeds.push(`🔪 수술실 ${h.surgeryBeds}개`);
-  if(h.icuBeds > 0)     extraBeds.push(`💊 중환자실 ${h.icuBeds}개`);
+  if(h.surgeryBeds > 0) extraBeds.push(`${ic('scissors')} 수술실 ${h.surgeryBeds}개`);
+  if(h.icuBeds > 0)     extraBeds.push(`${ic('heart-pulse')} 중환자실 ${h.icuBeds}개`);
 
   // 실시간 여부 + 업데이트 시각
   const realtimeBadge = h.realtime
@@ -2842,15 +3034,15 @@ function openRouteModal(idx){
 
   document.getElementById('routeHospDetail').innerHTML = `
     ${regularBadge ? '<div style="margin-bottom:6px;">'+regularBadge+'</div>' : ''}
-    <div style="margin-bottom:6px;"><strong>🏥 진료과:</strong> ${specHtml}</div>
-    ${seriousHtml ? `<div style="margin-bottom:6px;"><strong>⚠️ 중증 수용:</strong><br>${seriousHtml}</div>` : ''}
+    <div style="margin-bottom:6px;"><strong>${ic('hospital')} 진료과:</strong> ${specHtml}</div>
+    ${seriousHtml ? `<div style="margin-bottom:6px;"><strong>${ic('triangle-alert')} 중증 수용:</strong><br>${seriousHtml}</div>` : ''}
     <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:var(--fs-xs);margin-bottom:4px;">
       <span><strong style="color:var(--red);">${bedText(h)}</strong></span>
       ${extraBeds.map(b=>`<span>${b}</span>`).join('')}
-      <span>📊 ${bedStatus}</span>
+      <span>${ic('activity')} ${bedStatus}</span>
     </div>
     <div style="display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:var(--fs-xs);">
-      <span>📞 ${h.phone||'전화번호 없음'}</span>
+      <span>${ic('phone')} ${h.phone||'전화번호 없음'}</span>
       ${h.er_type ? `<span style="font-size:var(--fs-2xs);color:var(--ink);">【${h.er_type}】</span>` : ''}
       ${realtimeBadge}
     </div>
@@ -3050,14 +3242,14 @@ async function initLoc(lat,lng,isDefault,accuracy){
 
   // hospList에 로딩 메시지 표시
   const hl = document.getElementById('hospList');
-  if(hl) hl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-hint);font-size:var(--fs-sm);">🔄 응급실 데이터 불러오는 중...</div>';
+  if(hl) hl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-hint);font-size:var(--fs-sm);">' + ic('rotate-cw').replace('class="ic"','class="ic ic-spin"') + ' 응급실 데이터 불러오는 중...</div>';
   const sl = document.getElementById('hospSubLabel');
   if(sl) sl.textContent = '데이터 로딩 중...';
 
   showLoad('주변 응급실 데이터 불러오는 중...');
   const emerData=await fetchEmer(lat,lng,null);
   if(emerData?.length){
-    useReal=true; rawHospitals=emerData;
+    useReal=true; rawHospitals=emerData; trackBeds(emerData);
     const init5=emerData.slice(0,5).map(h=>({...h,score:calcScore(h,null,null)}));
     init5.sort((a,b)=>b.score-a.score);
     window._currentHospitals=init5;
@@ -3084,15 +3276,31 @@ async function initLoc(lat,lng,isDefault,accuracy){
 //  채팅 위젯 (말풍선 FAB → 펼침)
 // ══════════════════════════════════════════
 const QUICK_SYMPTOMS = ['가슴이 쥐어짜듯 아파요','숨쉬기가 힘들어요','머리가 너무 아파요','넘어져서 다쳤어요','열이 나고 구토해요'];
+// 시연 모드: 전시용 기기에서 주소 끝에 ?demo=1 을 붙여 한 번 열면 그 기기에서만 켜진다 (?demo=0 으로 끔). 관람객 기기에는 영향 없음.
+const DEMO = (function(){
+  try{
+    const q = new URLSearchParams(location.search).get('demo');
+    if(q === '1') localStorage.setItem('eum_demo','1'); else if(q === '0') localStorage.removeItem('eum_demo');
+    return localStorage.getItem('eum_demo') === '1';
+  }catch(e){ return /[?&]demo=1/.test(location.search); }
+})();
+const DEMO_SCENARIOS = [
+  {l:'심정지 의심', q:'숨을 못 쉬고 의식이 없어요'},
+  {l:'심한 가슴 통증', q:'가슴이 쥐어짜듯 아파요'},
+  {l:'복통과 구토', q:'배가 아프고 구토를 해요'},
+  {l:'열과 기침', q:'어제부터 열이 나고 기침이 나요'},
+  {l:'가벼운 베임', q:'손가락을 조금 베였어요'}
+];
 function renderQuickChips(){
   const box = document.getElementById('chatQs');
   if(!box) return;
   box.innerHTML = '';
-  QUICK_SYMPTOMS.forEach(q=>{
+  const items = DEMO ? DEMO_SCENARIOS : QUICK_SYMPTOMS.map(q=>({l:q,q}));
+  items.forEach(it=>{
     const b = document.createElement('button');
-    b.type = 'button'; b.className = 'chat-qk'; b.textContent = q;
+    b.type = 'button'; b.className = 'chat-qk'; b.textContent = it.l;
     b.addEventListener('click', ()=>{
-      document.getElementById('chatIn').value = q;
+      document.getElementById('chatIn').value = it.q;
       sendChat();
     });
     box.appendChild(b);
@@ -3127,6 +3335,41 @@ document.addEventListener('keydown', e=>{
   if(e.key === 'Escape' && isChatOpen()){ setChatOpen(false); document.getElementById('chatFab').focus(); }
 });
 renderQuickChips();
+
+// 시연 모드 표시와 대기 화면 자동 재생 (일정 시간 아무도 만지지 않으면 시나리오를 스스로 보여주고, 만지면 바로 멈춤)
+if(DEMO){
+  const sub = document.querySelector('.logo-sub');
+  if(sub){ const t = document.createElement('span'); t.className = 'demo-tag'; t.textContent = '시연 모드'; sub.appendChild(t); }
+  const IDLE = Math.max(5, +(new URLSearchParams(location.search).get('idle') || 45)) * 1000;
+  let idleT = 0, running = false, timers = [], idx = 0;
+  const clearT = () => { timers.forEach(clearTimeout); timers = []; };
+  const closeLayers = () => { document.querySelectorAll('.qr-modal.show').forEach(m=>m.classList.remove('show')); try{ if(typeof qrIsOpen==='function' && qrIsOpen()) closeQrModal(); }catch(e){} };
+  const busy = () => document.querySelector('.qr-modal.show,.route-modal.show') || document.body.classList.contains('users-open');
+  function schedule(){ clearTimeout(idleT); idleT = setTimeout(startAttract, IDLE); }
+  function endAttract(){ clearT(); if(running){ running = false; closeLayers(); try{ resetChat(); }catch(e){} setChatOpen(false); } }
+  function startAttract(){
+    if(running) return;
+    if(busy()){ schedule(); return; }
+    running = true;
+    const sc = DEMO_SCENARIOS[idx++ % DEMO_SCENARIOS.length], chars = Array.from(sc.q);
+    try{ resetChat(); }catch(e){}
+    setChatOpen(true);
+    const ta = document.getElementById('chatIn'); ta.value = '';
+    let i = 0;
+    const type = () => {
+      if(!running) return;
+      if(i < chars.length){ ta.value = ta.value + chars[i++]; timers.push(setTimeout(type, 80)); return; }
+      timers.push(setTimeout(() => {
+        if(!running) return;
+        sendChat();
+        timers.push(setTimeout(() => { if(!running) return; endAttract(); schedule(); }, 15000));
+      }, 800));
+    };
+    timers.push(setTimeout(type, 1000));
+  }
+  ['pointerdown','keydown','touchstart','wheel'].forEach(ev => addEventListener(ev, () => { if(running) endAttract(); schedule(); }, {passive:true, capture:true}));
+  schedule();
+}
 
 // ══════════════════════════════════════════
 //  테마 (라이트 / 다크) — 누른 위치에서 원형으로 번지는 전환
@@ -5600,20 +5843,20 @@ function qrFill(snap, url, share) {
   const list = qrEl('qrInfoList'); list.textContent = '';
   const line = (icon, label, val) => {
     const d = document.createElement('div');
-    d.appendChild(document.createTextNode(icon + ' ' + label + ': '));
+    d.insertAdjacentHTML('afterbegin', ic(icon)); d.appendChild(document.createTextNode(' ' + label + ': '));
     const v = document.createElement('span');
     const nil = val === null || val === undefined;
     v.textContent = nil ? '미입력' : (Array.isArray(val) ? (val.length ? val.join(', ') : '없음') : String(val));
     if (nil) v.className = 'nil';
     d.appendChild(v); list.appendChild(d);
   };
-  line('👤', '이름', snap.name);
-  line('🎂', '나이', snap.age === null ? null : snap.age + '세');
-  line('⚧', '성별', snap.gender);
-  line('🏥', '기저질환', snap.conditions);
-  line('💊', '복용약', snap.medications);
-  line('⚠️', '알레르기', snap.allergies);
-  line('🏨', '기존 이용 병원', snap.hospital ? [snap.hospital.name, snap.hospital.department].filter(Boolean).join(' · ') : null);
+  line('user', '이름', snap.name);
+  line('cake', '나이', snap.age === null ? null : snap.age + '세');
+  line('users-round', '성별', snap.gender);
+  line('hospital', '기저질환', snap.conditions);
+  line('pill', '복용약', snap.medications);
+  line('triangle-alert', '알레르기', snap.allergies);
+  line('building-2', '기존 이용 병원', snap.hospital ? [snap.hospital.name, snap.hospital.department].filter(Boolean).join(' · ') : null);
 
   const meta = qrEl('qrMeta'); meta.textContent = '';
   const left = document.createElement('b');
