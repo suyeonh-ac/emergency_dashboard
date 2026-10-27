@@ -57,6 +57,10 @@ CORS(app, origins=[
     "http://127.0.0.1:5177",
 ], supports_credentials=True)
 
+# QR 공유 API + 모바일 조회 페이지 (qr_share.py)
+from qr_share import bp as qr_share_bp
+app.register_blueprint(qr_share_bp)
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 CLOVA_CLIENT_ID     = os.getenv("CLOVA_CLIENT_ID")

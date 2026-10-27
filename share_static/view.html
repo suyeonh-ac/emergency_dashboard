@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="color-scheme" content="light dark">
+<title>응급 의료정보 조회 · E-um</title>
+<link rel="stylesheet" href="/share/view.css">
+</head>
+<body>
+<main class="wrap">
+  <header class="hd">
+    <div class="logo"><b>E</b>-um</div>
+    <div class="sub">응급 의료정보 조회</div>
+  </header>
+
+  <div id="demoBanner" class="banner" hidden>시연용 화면이에요. 가상 환자 정보만 표시됩니다.</div>
+
+  <section id="stLoading" class="state" hidden aria-live="polite">
+    <div class="spin" aria-hidden="true"></div>
+    <p class="st-t">환자 정보를 불러오는 중이에요</p>
+  </section>
+
+  <section id="stMsg" class="state" hidden aria-live="polite">
+    <div class="st-i" id="msgIcon" aria-hidden="true">!</div>
+    <h1 class="st-t" id="msgTitle"></h1>
+    <p class="st-d" id="msgDesc"></p>
+    <button type="button" class="btn" id="msgBtn" hidden>다시 시도</button>
+  </section>
+
+  <section id="stAuth" class="state" hidden>
+    <h1 class="st-t">조회 권한 확인</h1>
+    <p class="st-d">구급대원·의료진에게 발급된 조회 코드를 입력해 주세요.</p>
+    <form id="authForm" autocomplete="off">
+      <input id="authInput" type="password" inputmode="text" autocapitalize="off" spellcheck="false" placeholder="조회 코드" aria-label="조회 코드">
+      <button type="submit" class="btn">확인</button>
+    </form>
+    <p class="st-d err" id="authErr" hidden></p>
+  </section>
+
+  <section id="stOk" hidden>
+    <div class="card">
+      <div class="name" id="pName"></div>
+      <div class="meta" id="pMeta"></div>
+    </div>
+    <dl class="card list" id="pList"></dl>
+    <div class="foot">
+      <div>정보 생성 시각 <b id="fCreated"></b></div>
+      <div>이 링크는 <b id="fExpires"></b>까지 유효해요 <span id="fLeft" class="left"></span></div>
+    </div>
+  </section>
+</main>
+<script src="/share/view.js"></script>
+</body>
+</html>
