@@ -279,6 +279,9 @@ select{appearance:none;-webkit-appearance:none;}
 .best-metrics{display:flex;gap:8px;flex-wrap:wrap;font-size:var(--fs-xs);font-weight:700;margin-bottom:12px;}
 .best-metrics span{background:var(--tint);border-radius:999px;padding:6px 14px;color:var(--ink-2);}
 .best-metrics #bestHospDist{color:var(--red);background:var(--red-soft);}
+.best-ktas{margin-bottom:14px;padding:12px 16px;border-radius:20px;background:var(--tint);font-size:var(--fs-xs);color:var(--ink-3);line-height:1.65;}
+.best-ktas .k-h{font-weight:800;color:var(--ink);margin-bottom:4px;}
+.best-ktas .k-r b{display:inline-block;min-width:64px;color:var(--mute);font-weight:700;}
 .best-reason{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
 .rs-chip{display:inline-flex;align-items:center;min-height:30px;padding:0 14px;border-radius:999px;background:var(--tint);color:var(--ink-3);font-size:var(--fs-xs);font-weight:700;}
 .rs-chip.strong{background:var(--ink);color:var(--on-ink);}
@@ -1051,6 +1054,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
           <span id="bestHospEta">—</span>
           <span id="bestHospBed">—</span>
         </div>
+        <div id="bestKtas" class="best-ktas" style="display:none"></div>
         <div id="bestHospReason" class="best-reason"></div>
         <div class="best-actions">
           <button onclick="openRouteModal(0)" class="pill-btn primary go">지금 출발</button>
@@ -1323,7 +1327,7 @@ let ktasContext  = '';   // 첫 응답에서 받은 ktas_context 캐싱
 let surveyDone   = false;
 
 function resetChat(){
-  chatHistory=[];ktasContext='';surveyDone=false;detKtas=null;detDept=null;
+  chatHistory=[];ktasContext='';surveyDone=false;detKtas=null;detDept=null;window._ktasInfo=null;window._ktasMatched=null;
   document.getElementById('chatMsgs').innerHTML='';
   document.getElementById('ktasResult').classList.remove('show');
   appendBubble('대화가 초기화됐습니다. 증상을 다시 말씀해 주세요.<br><em>예: "갑자기 가슴이 쥐어짜고 왼팔이 저려요"</em>','ai');
@@ -1405,6 +1409,7 @@ async function sendChat(){
 
       // ktas_context 첫 응답에서만 내려옴 → 캐싱
       if(result.ktas_context) ktasContext = result.ktas_context;
+      if(result.matched_complaints) window._ktasMatched = result.matched_complaints;
 
       result._src = 'ai';
     }catch(e){
@@ -1448,6 +1453,7 @@ async function sendChat(){
       '호흡':'internal','기침':'internal',
     };
     detKtas = level;
+    window._ktasInfo = { level, label:({1:'소생',2:'긴급',3:'응급',4:'준응급',5:'비응급'})[level], cc, steps:(result.reason_steps||[]).filter(Boolean), reason, matched: result.matched_complaints || window._ktasMatched || [], src: result._src };
     detDept = result.dept || Object.entries(deptByCC).find(([k])=>cc.includes(k))?.[1] || 'general';
 
     // KTAS 결과 카드 업데이트
@@ -2048,17 +2054,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── 패닉 발화 감지 ────────────────────────────────────────────
 
-const PANIC_KEYWORDS = [
-  '죽을것같', '죽을 것 같', '숨못', '숨을 못', '못 쉬', '못쉬',
-  '쓰러', '의식', '안보여', '안 보여', '말이안', '말이 안',
-  '심장이', '가슴이 터', '너무 아파', '너무아파', '살려', '응급',
-  '갑자기', '막 이상', '이상해요', '쥐어짜', '왼팔', '왼쪽 팔'
+// 패닉(즉시 응급) 판단 기준
+//  A. 강한 신호: 아래 표현이 하나라도 있으면 바로 발동
+//  B. 약한 신호: 서로 다른 약한 신호가 2개 이상일 때만 발동 ('갑자기' 같은 흔한 단어 하나로는 발동하지 않음)
+//  부정 표현(않, 아니, 없어, 괜찮) 이 바로 뒤에 오면 그 신호는 무시
+const PANIC_STRONG = [
+  ['호흡곤란', /숨(을|이)?\s*(못|안)\s*(쉬|쉬어|쉬겠)|숨\s*막|호흡\s*곤란|숨이\s*안\s*쉬어/],
+  ['의식 이상', /의식(이|을)?\s*(없|잃|흐려|가물)|정신(을|이)?\s*(잃|못\s*차)|기절|쓰러(졌|짐|질\s*것)|반응이\s*없/],
+  ['심정지 의심', /심정지|맥(이|박이)?\s*안\s*(잡|뛰)|숨을?\s*안\s*쉬/],
+  ['심한 흉통', /쥐어짜|가슴(이|을)?\s*(터|찢|조이|눌리)|가슴.{0,6}왼(쪽)?\s*팔|왼(쪽)?\s*팔.{0,6}(저리|저려|아프)/],
+  ['뇌졸중 의심', /말(이|을)?\s*(안\s*나|어눌|꼬)|한쪽\s*(팔|다리|얼굴).{0,6}(마비|힘이\s*없|처)|안\s*보여|시야가\s*(안|갑자기)/],
+  ['대량 출혈', /피(를|가)?\s*(토|많이|멈추지|계속)|출혈이?\s*(심|멈추지|많)/],
+  ['경련', /경련|발작|거품/],
+  ['구조 요청', /살려|죽을\s*것\s*같|죽겠/]
 ];
+const PANIC_WEAK = [
+  ['갑작스런 증상', /갑자기/],
+  ['극심한 통증', /(너무|엄청|참을\s*수\s*없(이|게)?|심하게)\s*아파|극심/],
+  ['가슴 증상', /가슴(이|을)?\s*(아프|답답|두근)|심장이\s*(아프|두근|뛰)/],
+  ['호흡 불편', /숨(이)?\s*(차|가빠|답답)/],
+  ['응급 표현', /응급|위급|심각/],
+  ['이상 증상', /막\s*이상|이상해요|어지러/]
+];
+function panicSignals(text){
+  const t = String(text||'');
+  const hit = (list) => {
+    const out = [];
+    for(const [label, re] of list){
+      const m = re.exec(t);
+      if(!m) continue;
+      const after = t.slice(m.index + m[0].length, m.index + m[0].length + 8);
+      if(/^[^,.!?\n]{0,6}(않|아니|없어|괜찮)/.test(after) && !/없/.test(m[0])) continue;   // 예: "숨은 잘 쉬어요" / "쓰러진 건 아니에요"
+      out.push({label, text:m[0]});
+    }
+    return out;
+  };
+  const strong = hit(PANIC_STRONG), weak = hit(PANIC_WEAK);
+  return { panic: strong.length > 0 || weak.length >= 2, strong, weak };
+}
 
 function detectPanic(text) {
   if (!text) return false;
-  const normalized = text.replace(/\s/g, '').toLowerCase();
-  return PANIC_KEYWORDS.some(kw => normalized.includes(kw.replace(/\s/g, '')));
+  return panicSignals(text).panic;
 }
 
 function getSpecialtyFromConditions(conditions) {
@@ -2080,23 +2117,26 @@ function getSpecialtyFromConditions(conditions) {
 
 function triggerPanicMode(symptomText) {
   const profile = getActiveProfile();
+  const sig = panicSignals(symptomText);
+  const sigList = [...sig.strong, ...sig.weak];
+  window._ktasInfo = { panic:true, level:2, label:'긴급', signals: sigList.map(x=>x.label + ' ("' + x.text + '")') };
 
   // 챗봇 패널에 즉시 반응 메시지 표시
   const msg = `
-⚠️ <strong>패닉 상태 감지</strong><br>
-추가 질문 없이 바로 연결합니다.<br><br>
-${profile ? `👤 <strong>${profile.name}</strong> 님의 프로파일 로드됨<br>
-기저질환: ${(profile.conditions||[]).join(', ') || '없음'}<br>
-복용약: ${(profile.medications||[]).join(', ') || '없음'}<br><br>` : ''}
+<strong>위험 신호가 감지됐어요</strong><br>
+${escHtml(sigList.map(x=>x.label).join(', '))} 표현이 있어서 추가 질문 없이 바로 안내해요.<br><br>
+${profile ? `<strong>${escHtml(profile.name)}</strong> 님의 등록 정보를 불러왔어요<br>
+기저질환: ${escHtml((profile.conditions||[]).join(', ') || '없음')}<br>
+복용약: ${escHtml((profile.medications||[]).join(', ') || '없음')}<br><br>` : ''}
 <strong>KTAS 1~2로 의심돼요. 바로 응급실로 이동하세요</strong><br><br>
-[시뮬레이션] 가장 가까운 응급실로 자동 연결 중...
+가까운 응급실을 찾고 있어요...
   `;
   appendBubble(msg, 'crit');
 
   // 프로파일 있으면 QR 자동 표시 (구급대원 전달용)
   if(profile && !profile._isGuest) {
     setTimeout(() => {
-      appendBubble('🏷️ <strong>응급 의료정보 QR</strong>이 생성되었습니다.<br>구급대원에게 보여주세요.', 'sys');
+      appendBubble('<strong>응급 의료정보 QR</strong>을 띄웠어요.<br>구급대원에게 보여주세요.', 'sys');
       openQrModal();
     }, 800);
   }
@@ -2136,7 +2176,7 @@ function showPanicHospitalCard(profile) {
   <div style="display:flex;gap:14px;font-size:var(--fs-xs);color:var(--mute);margin-bottom:10px;flex-wrap:wrap;">
     <span>📍 ${best.dist}km</span>
     <span>⏱️ 약 ${best.eta}분</span>
-    <span>🛏️ <span style="color:${bedColor};font-weight:600;">병상 ${best.availBeds}개</span></span>
+    <span>🛏️ <span style="color:${bedColor};font-weight:600;">${bedText(best)}</span></span>
     ${best.phone ? `<span>📞 ${best.phone}</span>` : ''}
   </div>
   <button onclick="openRouteModal(${hospIdx})" style="width:100%;padding:10px;background:var(--busy);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🗺 지금 바로 출발</button>
@@ -2212,8 +2252,8 @@ async function runSearch(){
     return;
   }
 
-  const scored=rawHospitals.map(h=>({...h,score:calcScore(h,detKtas,detDept)}));
-  scored.sort((a,b)=>b.score-a.score);
+  const scored=rawHospitals.map(h=>{const sc=calcScore(h,detKtas,detDept);return {...h,score:sc};});
+  scored.sort((a,b)=>(b.score-a.score)||((b._raw||0)-(a._raw||0)));
   const top5=scored.slice(0,5);
 
   hideLoad();btn.disabled=false;
@@ -2233,14 +2273,21 @@ async function runSearch(){
 
   if(top5[0]){
     const t=top5[0];
-    appendBubble(`✅ <strong>${t.name}</strong> 추천<br>🚗 ${t.dist}km · ⏱️ ${t.eta}분 · 🏥 가용 ${t.availBeds}병상`,'sys');
+    appendBubble(`✅ <strong>${t.name}</strong> 추천<br>🚗 ${t.dist}km · ⏱️ ${t.eta}분 · ${bedKnown(t)?' · 가용 '+t.availBeds+'병상':''}`,'sys');
   }
 
   // resultSection 항상 표시됨
   document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function bedKnown(h){ return !!(h && h.real && h.realtime); }
+function bedText(h){ return bedKnown(h) ? `병상 ${h.availBeds}개` : '병상 정보 없음'; }
 function calcScore(h,ktas,dept){
+  const raw = calcScoreRaw(h,ktas,dept);
+  h._raw = raw;
+  return Math.max(1, Math.min(100, Math.round(raw)));   // 100점 만점
+}
+function calcScoreRaw(h,ktas,dept){
   const profile = (typeof getActiveProfile==='function') ? getActiveProfile() : null;
   const regularHosp = profile?.regular_hospital;
 
@@ -2324,7 +2371,7 @@ function calcScore(h,ktas,dept){
       else                s -= 40;
       // 기존 병원 + forceCritical 체크된 경우 보너스
       s += regularBonus;
-      return Math.max(5, Math.min(99, Math.round(s)));
+      return Math.max(5, Math.round(s));
     }
   }
 
@@ -2340,7 +2387,7 @@ function calcScore(h,ktas,dept){
     else if(needsSpecialty && !h.depts?.[dept])     s -= 25; // 전문과 필요한데 없으면 감점
     s += regularBonus;
     s += Math.random()*3-1.5;
-    return Math.max(10, Math.min(99, Math.round(s)));
+    return Math.max(10, Math.round(s));
   }
 
   // ── KTAS 4~5: 기존 병원 강력 우선, 거리 차순위 ───────────
@@ -2354,7 +2401,7 @@ function calcScore(h,ktas,dept){
   else if(needsSpecialty && !h.depts?.[dept])     s -= 20;
   s += regularBonus;
   s += Math.random()*3-1.5;
-  return Math.max(10, Math.min(99, Math.round(s)));
+  return Math.max(10, Math.round(s));
 }
 
 // ── NEMC API ─────────────────────────────
@@ -2371,21 +2418,24 @@ const SPECIALTY_TO_DEPT = {
 };
 
 async function fetchEmer(lat,lng,deptKey){
+  window._emerWhy='';
   try{
     // backend /hospitals 프록시 호출
     const url = `${BACKEND_URL}/hospitals?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}`;
     const res = await fetch(url);
-    if(!res.ok) throw new Error('backend 응답오류 '+res.status);
+    if(!res.ok) throw new Error('HTTP '+res.status);
     const json = await res.json();
     const items = json.hospitals || [];
-    if(!items.length) throw new Error('항목없음');
+    if(!items.length){ window._emerWhy = json.source==='empty' ? '서버에 국립중앙의료원 키가 없거나 응답이 비어 있어요' : '주변 응급실 목록이 비어 있어요'; throw new Error('항목없음'); }
+    window._emerRt = json.realtime_count;
 
     let hospitals = items.map(item => {
       const hlat = parseFloat(item.lat), hlng = parseFloat(item.lng);
       if(!isFinite(hlat) || !isFinite(hlng)) return null;
       const hvec = parseInt(item.availBeds || item.er_available || 0) || 0;
       const hpbdn = 10; // backend가 별도 미제공 → 추정치
-      const occ = Math.min(Math.round((1 - hvec/hpbdn)*100), 99);
+      const hasRt = !!item.realtime;
+      const occ = hasRt ? Math.max(0, Math.min(Math.round((1 - hvec/hpbdn)*100), 99)) : 50;   // 실시간 값이 없으면 중립값
       const d = haversine(lat, lng, hlat, hlng);
 
       // specialties (Korean names) → depts 매핑
@@ -2403,7 +2453,7 @@ async function fetchEmer(lat,lng,deptKey){
         lat:            hlat,
         lng:            hlng,
         occupancy:      occ,
-        available:      occ<60?'ok':occ<80?'warn':'crit',
+        available:      !hasRt?'warn':occ<60?'ok':occ<80?'warn':'crit',
         availBeds:      hvec,
         surgeryBeds:    item.surgeryBeds || 0,
         icuBeds:        item.icuBeds    || 0,
@@ -2426,6 +2476,7 @@ async function fetchEmer(lat,lng,deptKey){
     return hospitals;
   }catch(e){
     console.warn('[NEMC backend] 실패:', e.message);
+    if(!window._emerWhy) window._emerWhy = /HTTP (\d+)/.test(e.message) ? '서버 오류 ('+e.message+')' : '서버에 연결할 수 없어요';
     return null;
   }
 }
@@ -2442,15 +2493,14 @@ function kakaoFallback(lat,lng,dept,cb){
 
 function buildFb(data,lat,lng,dept){
   return data.slice(0,10).map(p=>{
-    const occ=Math.floor(Math.random()*55+20);
+    const occ=50;   // 실시간 병상 정보가 없으면 중립값 (임의 숫자를 만들지 않음)
     const hlat=parseFloat(p.y),hlng=parseFloat(p.x),d=haversine(lat,lng,hlat,hlng);
-    const depts={};Object.keys(DEPT_MAP).forEach(k=>{depts[k]=Math.random()>.4;});
-    if(dept&&dept!=='general')depts[dept]=true;
+    const depts={};Object.keys(DEPT_MAP).forEach(k=>{depts[k]=false;});   // 진료과 정보 없음
     // 카카오 fallback - 진료과 배열도 포함해 모달에서 정보 표시 가능하게
     const specList = Object.entries(depts).filter(([,v])=>v).map(([k])=>DEPT_MAP[k]?.label).filter(Boolean);
     return{name:p.place_name,address:p.address_name,phone:p.phone,lat:hlat,lng:hlng,
-      occupancy:occ,available:occ<60?'ok':occ<80?'warn':'crit',
-      availBeds:Math.floor(Math.random()*15+2),eta:Math.round(d/500+3),dist:(d/1000).toFixed(1),
+      occupancy:occ,available:'warn',
+      availBeds:0,eta:Math.round(d/500+3),dist:(d/1000).toFixed(1),
       depts,specialties:specList,real:false,score:0};
   });
 }
@@ -2533,10 +2583,10 @@ function renderHospList(hospitals,isCrit){
         </div>
       </div>
       <div class="hosp-right">
-        <div class="bed-badge ${bedClass[h.available]}">병상 ${h.availBeds}개</div>
+        <div class="bed-badge ${bedKnown(h)?bedClass[h.available]:''}">${bedText(h)}</div>
         <div class="score-bar"><div class="score-fill" style="width:${h.score}%"></div></div>
-        <div style="font-size:var(--fs-2xs);color:var(--mute);margin-top:4px;text-align:right;font-weight:700;">적합도 ${h.score}</div>
-        <div style="font-size:var(--fs-2xs);color:var(--text-hint);margin-top:3px;text-align:right;">${!h.real?'시뮬레이션':''}</div>
+        <div style="font-size:var(--fs-2xs);color:var(--mute);margin-top:4px;text-align:right;font-weight:700;">적합도 ${h.score}점</div>
+        <div style="font-size:var(--fs-2xs);color:var(--text-hint);margin-top:3px;text-align:right;">${!h.real?'참고용':''}</div>
       </div>
     </div>`;
   }).join('');
@@ -2552,13 +2602,38 @@ function renderHospList(hospitals,isCrit){
   if(fbBadge)   fbBadge.style.display   = isReal ? 'none' : 'inline-block';
   if(subLabel){
     const cnt = hospitals.length;
-    subLabel.textContent = isReal
-      ? `국립중앙의료원 실시간 데이터 ${cnt}곳`
-      : `지도 검색 결과 ${cnt}곳 (실시간 병상 정보 없음)`;
+    const rt = hospitals.filter(bedKnown).length;
+    if(isReal){
+      subLabel.textContent = rt === cnt ? `국립중앙의료원 실시간 병상 정보 ${cnt}곳`
+        : rt > 0 ? `국립중앙의료원 ${cnt}곳 (실시간 병상 ${rt}곳)`
+        : `국립중앙의료원 ${cnt}곳 (이 병원들은 실시간 병상 정보가 없어요)`;
+    } else {
+      subLabel.textContent = `지도 검색 결과 ${cnt}곳 · 병상 정보 없음${window._emerWhy ? ' (' + window._emerWhy + ')' : ''}`;
+    }
   }
 }
 
 // ── 단일 최적 추천 카드 업데이트 ─────────
+function renderKtasBasis(){
+  const el = document.getElementById('bestKtas'); if(!el) return;
+  const k = window._ktasInfo;
+  el.textContent = '';
+  if(!k){ el.style.display = 'none'; return; }
+  const add = (cls, parts) => { const d=document.createElement('div'); d.className=cls; parts.forEach(p=>{ if(p.b){const b=document.createElement('b'); b.textContent=p.b; d.appendChild(b);} if(p.t!=null) d.appendChild(document.createTextNode(p.t)); }); el.appendChild(d); };
+  if(k.panic){
+    add('k-h',[{t:'위험 신호로 판단했어요 (KTAS 1~2 의심)'}]);
+    add('k-r',[{b:'감지된 표현'},{t:(k.signals||[]).join(', ')}]);
+    add('k-r',[{b:'판단 방식'},{t:'정식 분류가 아니라 입력한 문장의 위험 표현으로 먼저 안내한 거예요'}]);
+  } else {
+    add('k-h',[{t:`KTAS ${k.level}단계 ${k.label}` + (k.cc ? ` · ${k.cc}` : '')}]);
+    if(k.steps && k.steps.length) add('k-r',[{b:'판정 근거'},{t:k.steps.map(x=>String(x).trim().replace(/[.。]?$/,'.')).join(' ')}]);
+    else if(k.reason) add('k-r',[{b:'판정 근거'},{t:k.reason}]);
+    if(k.matched && k.matched.length) add('k-r',[{b:'KTAS 기준표'},{t:'증상이 ' + k.matched.slice(0,3).join(', ') + ' 항목과 가까워요'}]);
+    if(k.src === 'rule') add('k-r',[{b:'분류 방식'},{t:'AI 서버에 연결되지 않아 기본 규칙으로 분류했어요'}]);
+  }
+  el.style.display = 'block';
+}
+
 function renderBestHospCard(hospitals, isCrit) {
   if (!hospitals || !hospitals.length) return;
   const h = hospitals[0];
@@ -2573,7 +2648,7 @@ function renderBestHospCard(hospitals, isCrit) {
 
   const bedColor = {ok:'var(--green)',warn:'var(--amber)',crit:'var(--red)'}[h.available] || 'var(--text-sub)';
   const bedEl = document.getElementById('bestHospBed');
-  if (bedEl) { bedEl.textContent = `병상 ${h.availBeds}개`; bedEl.style.color = bedColor; }
+  if (bedEl) { bedEl.textContent = bedText(h); bedEl.style.color = bedKnown(h) ? bedColor : 'var(--text-sub)'; }
 
   const profile   = (typeof getActiveProfile === 'function') ? getActiveProfile() : null;
   const specialty = (typeof getSpecialtyFromConditions === 'function')
@@ -2588,20 +2663,21 @@ function renderBestHospCard(hospitals, isCrit) {
     tags.push(['가장 가까운 응급실', true]);
     if (needsSpec) tags.push([hasSpecFor(detDept) ? `${DEPT_MAP[detDept]?.label} 있음` : `${DEPT_MAP[detDept]?.label} 없음, 가까운 순`, false]);
   } else {
-    tags.push([`적합도 ${h.score}`, true]);
+    tags.push([`적합도 ${h.score}/100`, true]);
     if (h._isRegularHosp) tags.push(['기존 이용 병원', false]);
     if (specialty && (h.specialties||[]).some(s => s.includes(specialty.replace(/과$/,'')))) tags.push([`${specialty} 있음`, false]);
   }
-  tags.push([{ok:'병상 여유',warn:'병상 보통',crit:'병상 포화'}[h.available] || '병상 정보 없음', false]);
+  tags.push([bedKnown(h) ? ({ok:'병상 여유',warn:'병상 보통',crit:'병상 포화'}[h.available] || '병상 정보 없음') : '병상 정보 없음', false]);
   if (!h.real) tags.push(['참고용 데이터', false]);
 
+  renderKtasBasis();
   const rsEl = document.getElementById('bestHospReason');
   rsEl.textContent = '';
   tags.forEach(([t, strong]) => {
     const c = document.createElement('span'); c.className = 'rs-chip' + (strong ? ' strong' : ''); c.textContent = t;
     rsEl.appendChild(c);
   });
-  rsEl.title = isCrit ? '' : '적합도는 거리, 대기 시간, 전문과, 병상, 기존 이용 병원을 합산한 값이에요';
+  rsEl.title = isCrit ? '' : '적합도는 100점 만점이에요. 거리, 도착 시간, 병상 여유, 필요한 진료과, 기존 이용 병원을 반영해요';
 
   const callBtn = document.getElementById('bestHospCallBtn');
   if (callBtn) {
@@ -2650,7 +2726,7 @@ function openRouteModal(idx){
   document.getElementById('routeHospAddr').textContent = h.address||'주소 정보 없음';
   document.getElementById('routeDist').textContent     = `${h.dist}km`;
   document.getElementById('routeEta').textContent      = `약 ${h.eta}분`;
-  document.getElementById('routeBed').textContent      = `🏥 가용 ${h.availBeds}병상`;
+  document.getElementById('routeBed').textContent      = bedKnown(h) ? `가용 ${h.availBeds}병상` : '병상 정보 없음';
 
   // ── 병원 상세 패널 채우기 ──────────────────────
   const specHtml = (h.specialties||[]).length
@@ -2689,7 +2765,7 @@ function openRouteModal(idx){
     <div style="margin-bottom:6px;"><strong>🏥 진료과:</strong> ${specHtml}</div>
     ${seriousHtml ? `<div style="margin-bottom:6px;"><strong>⚠️ 중증 수용:</strong><br>${seriousHtml}</div>` : ''}
     <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:var(--fs-xs);margin-bottom:4px;">
-      <span>🛏️ 응급 <strong style="color:var(--red);">${h.availBeds}개</strong></span>
+      <span><strong style="color:var(--red);">${bedKnown(h)?'응급 병상 '+h.availBeds+'개':'병상 정보 없음'}</strong></span>
       ${extraBeds.map(b=>`<span>${b}</span>`).join('')}
       <span>📊 ${bedStatus}</span>
     </div>
