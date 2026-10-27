@@ -44,6 +44,7 @@ setTimeout(function(){window.__introResolve();},9000);
   --text:var(--ink); --text-sub:var(--mute); --text-hint:var(--faint);
   --border:var(--hair); --red-light:var(--red-soft); --red-dark:#D10000;
   --green:var(--mute); --amber:var(--busy); --radius:26px;
+  --live:#1FB36B; --live-soft:rgba(31,179,107,.22);
 
   /* 크기 토큰 (큰 글씨 모드에서 한꺼번에 커짐) */
   --fs-base:16px; --fs-sm:14px; --fs-xs:12px; --fs-2xs:11px; --fs-lg:18px; --fs-xl:22px; --fs-2xl:28px;
@@ -268,6 +269,12 @@ select{appearance:none;-webkit-appearance:none;}
 .section-sub{font-size:var(--fs-sm);color:var(--mute);margin-bottom:16px;}
 .res-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
 .res-head-r{display:flex;gap:8px;align-items:center;}
+.live-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--tint);color:var(--ink-3);font-size:var(--fs-2xs);font-weight:800;white-space:nowrap;}
+.live-lamp,.live-dot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--faint-2);box-shadow:none;transition:background .3s,box-shadow .3s;animation:none;}
+[data-state="on"] .live-lamp,.live-chip[data-state="on"] .live-dot{background:var(--live);box-shadow:0 0 0 3px var(--live-soft),0 0 10px 1px var(--live);animation:lamp 2.2s ease-in-out infinite;}
+[data-state="wait"] .live-lamp,.live-chip[data-state="wait"] .live-dot{background:var(--faint);animation:blink 1.4s infinite;}
+@keyframes lamp{0%,100%{box-shadow:0 0 0 3px var(--live-soft),0 0 10px 1px var(--live)}50%{box-shadow:0 0 0 5px var(--live-soft),0 0 16px 3px var(--live)}}
+.live-pill[data-state="on"]{color:var(--ink);}
 .status-chip{display:none;font-size:var(--fs-2xs);padding:4px 12px;border-radius:999px;font-weight:700;background:var(--tint);color:var(--ink-3);}
 .status-chip.warn{background:var(--red-soft);color:var(--red-deep);}
 
@@ -354,7 +361,14 @@ select{appearance:none;-webkit-appearance:none;}
   display:flex;align-items:center;gap:14px;width:100%;min-height:var(--row-h);padding:0 16px;border-radius:26px;
   text-align:left;cursor:pointer;color:var(--ink);background:transparent;transition:background .22s,box-shadow .22s,transform .22s var(--ease);
 }
-.uc-rw:hover{background:var(--field);}
+.uc-ls{position:relative;}
+.uc-ls>li{position:relative;opacity:0;transform:translateY(8px);transition:opacity .25s var(--ease),transform .45s var(--spring);}
+body.users-open .uc-ls>li{opacity:1;transform:none;transition-delay:calc(var(--i,0) * 32ms);}
+.uc-ls>li.uc-hl{position:absolute;left:0;right:0;top:0;height:var(--h,var(--row-h));border-radius:26px;background:var(--field);opacity:0;transform:translateY(var(--y,0));transition:transform .3s var(--spring),height .3s var(--spring),opacity .2s;pointer-events:none;z-index:0;}
+body.users-open .uc-ls>li.uc-hl{transition-delay:0s;}
+.uc-ls.is-hl>li.uc-hl{opacity:1;}
+.uc-ls>li:not(.uc-hl){z-index:1;}
+@media (prefers-reduced-motion:reduce){.uc-ls>li,.uc-ls>li.uc-hl{transition-duration:.001ms !important;transition-delay:0s !important;}}
 .uc-rw.is-on{background:linear-gradient(145deg,rgba(255,60,60,.13),rgba(255,255,255,.18));box-shadow:var(--edge);}
 .uc-av{
   flex:none;width:var(--av);height:var(--av);border-radius:50%;display:grid;place-items:center;
@@ -500,6 +514,22 @@ body.chat-open .chat-panel{transform:none;opacity:1;pointer-events:auto;}
 .voice-status.show{display:block;}
 .voice-timer{color:var(--busy);margin-left:4px;font-variant-numeric:tabular-nums;}
 .chat-input{flex:1;min-width:0;min-height:var(--ctl);font-size:var(--fs-sm);font-weight:500;}
+textarea.chat-input{display:block;height:var(--ctl);max-height:132px;line-height:1.5;padding:calc((var(--ctl) - 1.5em) / 2) calc(var(--ctl) * .45);border-radius:calc(var(--ctl) / 2);overflow:hidden;transition:height .25s var(--ease),border-radius .25s var(--ease),background .2s,box-shadow .2s;}
+textarea.chat-input.multi{border-radius:22px;}
+.chat-input-wrap{align-items:flex-end;}
+.chat-ring{position:relative;flex:none;width:0;height:30px;margin:0 0 calc((var(--ctl) - 30px) / 2);opacity:0;overflow:hidden;transform:scale(.6);transition:width .3s var(--ease),opacity .2s,transform .45s var(--spring);}
+.chat-ring.on{width:30px;opacity:1;transform:none;}
+.chat-ring svg{width:30px;height:30px;transform:rotate(-90deg);}
+.chat-ring circle{fill:none;stroke-width:3;}
+.chat-ring .bg{stroke:var(--tint);}
+.chat-ring .fg{stroke:var(--ink-3);stroke-linecap:round;stroke-dasharray:75.4;stroke-dashoffset:calc(75.4 * (1 - var(--p,0)));transition:stroke-dashoffset .3s var(--ease),stroke .3s;}
+.chat-left{position:absolute;inset:0;display:grid;place-items:center;font-size:10px;font-weight:800;font-variant-numeric:tabular-nums;opacity:0;color:var(--busy);transition:opacity .2s;}
+.chat-ring.near{transform:scale(1.2);}
+.chat-ring.near .fg{stroke:var(--busy);}
+.chat-ring.near .chat-left{opacity:1;}
+.chat-ring.over .fg{stroke:var(--red);}
+.chat-ring.over .chat-left{color:var(--red);}
+.btn-send[aria-disabled="true"]{opacity:.35;}
 .btn-icon{width:var(--ctl);height:var(--ctl);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s;}
 .btn-icon:active{transform:scale(.92);}
 .btn-send{background:linear-gradient(160deg,var(--prim-a),var(--prim-b));box-shadow:0 6px 16px rgba(41,34,34,.25),inset 0 1.5px 1px rgba(255,255,255,.35);}
@@ -822,7 +852,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
     <div class="logo-sub">개별 환자 응급실 추천</div>
   </div>
   <div class="hdr-right">
-    <div class="live-chip"><div class="live-dot"></div><span>실시간 연동</span></div>
+    <div class="live-chip" id="liveChip" data-state="wait"><div class="live-dot"></div><span id="liveChipTxt">연동 확인 중</span></div>
     <button class="pill-btn ub" id="usersBtn" type="button" onclick="toggleUsers()" aria-expanded="false" aria-controls="userCard" title="사용자 목록">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.5 4.5-6.5 8-6.5s7 2 8 6.5"/></svg>
       <span class="ub-t" id="ubName">사용자</span>
@@ -868,7 +898,8 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
 
   <div class="chat-input-wrap">
     <div class="voice-status" id="voiceStatus">녹음 중<span class="voice-timer" id="voiceTimer">5</span>초</div>
-    <input class="chat-input" id="chatIn" type="text" placeholder="증상을 입력하세요" aria-label="증상 입력" autocomplete="off" />
+    <textarea class="chat-input" id="chatIn" rows="1" placeholder="증상을 입력하세요" aria-label="증상 입력" autocomplete="off" enterkeyhint="send"></textarea>
+    <span class="chat-ring" id="chatRing" aria-hidden="true"><svg viewBox="0 0 30 30"><circle class="bg" cx="15" cy="15" r="12"/><circle class="fg" cx="15" cy="15" r="12"/></svg><span class="chat-left" id="chatLeft"></span></span>
     <button class="btn-icon btn-voice" id="voiceBtn" type="button" onclick="toggleVoice()" title="음성 입력" aria-label="음성 입력">
       <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 013 3v6a3 3 0 01-6 0V5a3 3 0 013-3zm-1 14.93A7 7 0 015 11H3a9 9 0 008 8.94V22h2v-2.06A9 9 0 0021 11h-2a7 7 0 01-6 6.93z"/></svg>
     </button>
@@ -899,11 +930,12 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
   </div>
 </div>
 
-<!-- SOS 오버레이 -->
-<div class="sos-overlay" id="sosOverlay">
-  <div class="sos-count" id="sosCount">3</div>
-  <div class="sos-count-txt">119에 연결합니다</div>
-  <button class="sos-cancel" onclick="cancelSOS()">취소</button>
+<!-- 시연용 안내 -->
+<div class="qr-modal" id="demoModal" role="dialog" aria-modal="true" aria-labelledby="demoTitle" onclick="if(event.target===this)closeDemoModal()">
+  <div class="qr-box">
+    <div class="qr-msg" style="display:flex"><b id="demoTitle">시연용 기능이에요</b><span>졸업 프로젝트 시연 화면이라 실제 119에는 연결되지 않아요. 실제 응급 상황에서는 전화 앱으로 119에 직접 걸어주세요.</span></div>
+    <div class="qr-actions"><button class="pill-btn primary" id="demoOk" type="button" onclick="closeDemoModal()">확인</button></div>
+  </div>
 </div>
 
 <!-- 로딩 -->
@@ -945,7 +977,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
           <span class="sos-btn-label">119 신고</span>
         </button>
       </div>
-      <div class="sos-hint">3초간 길게 눌러 신고</div>
+      <div class="sos-hint" id="sosHint">3초간 길게 눌러보세요 (시연용, 실제 신고되지 않아요)</div>
     </div>
 
     <!-- 사용자 목록 · 슬라이드 상세 패널 -->
@@ -1038,8 +1070,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
           <div class="section-sub" id="hospSubLabel" style="margin-bottom:0;">위치 확인 중...</div>
         </div>
         <div class="res-head-r">
-          <span id="nemc-status-badge" class="status-chip">● 실시간</span>
-          <span id="fallback-status-badge" class="status-chip warn">● 카카오 검색</span>
+          <span id="liveStatus" class="live-pill" data-state="wait" role="status"><i class="live-lamp"></i><span id="liveTxt">연동 확인 중</span></span>
           <button onclick="runSearch()" id="searchBtn" class="pill-btn primary">새로고침</button>
         </div>
       </div>
@@ -1059,7 +1090,7 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
         <div class="best-actions">
           <button onclick="openRouteModal(0)" class="pill-btn primary go">지금 출발</button>
           <button id="bestHospCallBtn" onclick="" class="pill-btn sub">전화</button>
-          <button onclick="location.href='tel:119'" class="pill-btn sub danger">119</button>
+          <button onclick="openDemoModal()" class="pill-btn sub danger">119 (시연)</button>
         </div>
       </div>
 
@@ -1180,6 +1211,7 @@ function startSOS(e){
   document.getElementById('sosCountNum').textContent = '3';
 
   sosStartTime = performance.now();
+  demoHaptic(15);
 
   function animateGauge(now){
     const elapsed = now - sosStartTime;
@@ -1190,6 +1222,7 @@ function startSOS(e){
 
     // 카운트 숫자 갱신
     const remaining = Math.ceil(SOS_DURATION / 1000 - (elapsed / 1000));
+    if(remaining !== window._sosLast){ window._sosLast = remaining; if(remaining < 3 && remaining > 0) demoHaptic(18); }
     document.getElementById('sosCountNum').textContent = remaining > 0 ? remaining : '!';
 
     if(progress < 1){
@@ -1203,6 +1236,10 @@ function startSOS(e){
 }
 
 function stopSOS(){
+  if(sosStartTime && performance.now() - sosStartTime < SOS_DURATION){
+    const h=document.getElementById('sosHint');
+    if(h){ const o=h.dataset.o||h.textContent; h.dataset.o=o; h.textContent='3초 동안 계속 눌러야 해요'; clearTimeout(window._sosHT); window._sosHT=setTimeout(()=>{h.textContent=o;},1600); }
+  }
   // 손을 뗐을 때 → 게이지 리셋
   cancelAnimationFrame(sosRAF);
   sosRAF = null;
@@ -1217,30 +1254,32 @@ function stopSOS(){
   setTimeout(()=>{ fill.style.transition = 'stroke-dashoffset .05s linear'; }, 350);
 }
 
+function demoHaptic(p){
+  try{
+    if(window.Capacitor && Capacitor.Plugins && Capacitor.Plugins.Haptics && Capacitor.Plugins.Haptics.vibrate){ Capacitor.Plugins.Haptics.vibrate({duration: Array.isArray(p)?600:p}); return true; }
+    if(navigator.vibrate){ return navigator.vibrate(p); }
+  }catch(e){}
+  return false;
+}
+function openDemoModal(){
+  const m=document.getElementById('demoModal'); if(!m) return;
+  m.classList.add('show'); document.getElementById('demoOk').focus({preventScroll:true});
+}
+function closeDemoModal(){ document.getElementById('demoModal').classList.remove('show'); }
 function triggerSOS(){
-  // 게이지 완료 → 전체화면 오버레이 카운트다운 후 119
+  // 3초 완료: 실제 발신 없이 진동(모바일)과 시연용 안내만
   document.getElementById('sosBtn').classList.remove('pressing');
-  document.getElementById('sosOverlay').classList.add('show');
-  let c = 1;
-  document.getElementById('sosCount').textContent = c;
-  sosCountInterval = setInterval(()=>{
-    c--;
-    if(c <= 0){
-      clearInterval(sosCountInterval);
-      cancelSOS();
-      window.location.href = 'tel:119';
-    }
-  }, 1000);
+  demoHaptic([260,90,260]);
+  openDemoModal();
+  setTimeout(()=>{ const f=document.getElementById('sosGaugeFill'); if(f) f.style.strokeDashoffset = GAUGE_CIRC; }, 200);
 }
 
 function cancelSOS(){
-  clearInterval(sosCountInterval);
   cancelAnimationFrame(sosRAF);
   sosRAF = null;
-  document.getElementById('sosOverlay').classList.remove('show');
   document.getElementById('sosBtn').classList.remove('pressing');
   const fill = document.getElementById('sosGaugeFill');
-  fill.style.strokeDashoffset = GAUGE_CIRC;
+  if(fill) fill.style.strokeDashoffset = GAUGE_CIRC;
 }
 
 // 모바일 터치 이벤트 방어
@@ -1361,6 +1400,7 @@ function appendBubble(html,type){
 async function sendChat(){
   const inp=document.getElementById('chatIn');
   const msg=inp.value.trim();if(!msg)return;
+  if(Array.from(msg).length>200){showToast('증상은 200자 이내로 입력해 주세요');return;}
   appendBubble(msg,'user');inp.value='';
   document.querySelectorAll('.chat-qk').forEach(b=>b.classList.add('used'));
 
@@ -1592,9 +1632,12 @@ function renderUserList() {
   const ls = document.getElementById('ucList');
   if (!ls) return;
   const act = activeUidSafe();
-  ls.innerHTML = '';
+  ls.innerHTML = ''; ls.classList.remove('is-hl');
+  const hlLi = document.createElement('li'); hlLi.className = 'uc-hl'; hlLi.setAttribute('role','presentation'); ls.appendChild(hlLi);
+  const hlMove = (b) => { hlLi.style.setProperty('--y', b.parentNode.offsetTop + 'px'); hlLi.style.setProperty('--h', b.offsetHeight + 'px'); ls.classList.add('is-hl'); };
+  ls.onpointerleave = () => ls.classList.remove('is-hl');
   ucRows = userEntries().map((e, i) => {
-    const li = document.createElement('li');
+    const li = document.createElement('li'); li.style.setProperty('--i', i);
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'uc-rw' + (e.uid === act ? ' is-on' : '');
     b.innerHTML = '<span class="uc-av"></span><div><b></b><small></small></div><em></em>';
@@ -1607,6 +1650,7 @@ function renderUserList() {
     else { const n = (e.p.conditions || []).length; em.textContent = n ? '기저질환 ' + n : '정보 없음'; }
     if (i === ucCur) b.setAttribute('aria-current', 'true');
     b.addEventListener('click', () => ucShow(i, 0));
+    b.addEventListener('pointerenter', () => hlMove(b)); b.addEventListener('focus', () => hlMove(b)); b.addEventListener('blur', () => ls.classList.remove('is-hl'));
     li.appendChild(b); ls.appendChild(li);
     return b;
   });
@@ -2191,13 +2235,39 @@ function showPanicHospitalCard(profile) {
   <div style="font-size:var(--fs-xs);color:var(--mute);margin-bottom:10px;">위치 정보를 가져오는 중입니다. 아래 버튼으로 주변 응급실을 검색하거나 119에 신고하세요.</div>
   <div style="display:flex;gap:8px;">
     <button onclick="runSearch()" style="flex:1;padding:9px;background:var(--busy);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🔍 응급실 검색</button>
-    <button onclick="location.href='tel:119'" style="flex:1;padding:9px;background:var(--red-dark);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🚑 119 신고</button>
+    <button onclick="openDemoModal()" style="flex:1;padding:9px;background:var(--red-dark);color:#fff;border:none;border-radius:8px;font-size:var(--fs-sm);font-weight:600;cursor:pointer;">🚑 119 신고</button>
   </div>
 </div>`, 'ai');
   }
 }
 
-document.getElementById('chatIn').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing)sendChat();});
+(function(){
+  const ta=document.getElementById('chatIn'), ring=document.getElementById('chatRing'), left=document.getElementById('chatLeft');
+  const send=document.querySelector('.btn-send'), MAX=200;
+  const desc=Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value');
+  function grow(){
+    const base=parseFloat(getComputedStyle(ta).minHeight)||38;
+    ta.style.transition='none'; ta.style.height=base+'px';
+    const need=Math.min(132, Math.max(base, ta.scrollHeight));
+    void ta.offsetHeight; ta.style.transition=''; ta.style.height=need+'px';
+    ta.style.overflowY = ta.scrollHeight > 132 ? 'auto' : 'hidden';
+    ta.classList.toggle('multi', need > base + 4);
+  }
+  function count(){
+    const n=Array.from(ta.value).length, rest=MAX-n;
+    ring.style.setProperty('--p', Math.min(1,n/MAX).toFixed(3));
+    ring.classList.toggle('on', n>0);
+    ring.classList.toggle('near', rest<=30 && n>0);
+    ring.classList.toggle('over', rest<0);
+    left.textContent=rest;
+    if(send) send.setAttribute('aria-disabled', String(n===0 || rest<0));
+  }
+  function refresh(){ grow(); count(); }
+  Object.defineProperty(ta,'value',{configurable:true,get(){return desc.get.call(this);},set(v){desc.set.call(this,v);refresh();}});   // 음성 입력·추천 칩 등이 값을 넣을 때도 크기와 글자수가 맞춰지도록
+  ta.addEventListener('input',refresh);
+  ta.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){ e.preventDefault(); sendChat(); } });
+  window._chatRefresh=refresh; refresh();
+})();
 
 // 규칙 기반 폴백
 function ruleFallback(t){
@@ -2252,7 +2322,12 @@ async function runSearch(){
     return;
   }
 
-  const scored=rawHospitals.map(h=>{const sc=calcScore(h,detKtas,detDept);return {...h,score:sc};});
+  const anyRt = rawHospitals.some(bedKnown);
+  const scored=rawHospitals.map(h=>{
+    let sc=calcScore(h,detKtas,detDept);
+    if(anyRt && !bedKnown(h)){ h._raw -= 12; sc = Math.max(1, sc - 12); }   // 병상 정보를 확인할 수 없는 병원은 확인된 병원보다 조금 뒤에
+    return {...h,score:sc,_raw:h._raw};
+  });
   scored.sort((a,b)=>(b.score-a.score)||((b._raw||0)-(a._raw||0)));
   const top5=scored.slice(0,5);
 
@@ -2273,15 +2348,20 @@ async function runSearch(){
 
   if(top5[0]){
     const t=top5[0];
-    appendBubble(`✅ <strong>${t.name}</strong> 추천<br>🚗 ${t.dist}km · ⏱️ ${t.eta}분 · ${bedKnown(t)?' · 가용 '+t.availBeds+'병상':''}`,'sys');
+    appendBubble(`<strong>${escHtml(t.name)}</strong> 추천<br>${t.dist}km · 약 ${t.eta}분${bedKnown(t)?' · '+bedText(t):''}`,'sys');
   }
 
   // resultSection 항상 표시됨
   document.getElementById('resultSection').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
+function setLive(state, txt){
+  const p=document.getElementById('liveStatus'), c=document.getElementById('liveChip');
+  if(p){ p.dataset.state=state; document.getElementById('liveTxt').textContent=txt; }
+  if(c){ c.dataset.state=state; document.getElementById('liveChipTxt').textContent = state==='on' ? '실시간 연동' : state==='wait' ? '연동 확인 중' : '실시간 연동 안 됨'; }
+}
 function bedKnown(h){ return !!(h && h.real && h.realtime); }
-function bedText(h){ return bedKnown(h) ? `병상 ${h.availBeds}개` : '병상 정보 없음'; }
+function bedText(h){ return !bedKnown(h) ? '병상 정보 없음' : (h.availBeds > 0 ? `병상 ${h.availBeds}개` : '병상 포화'); }
 function calcScore(h,ktas,dept){
   const raw = calcScoreRaw(h,ktas,dept);
   h._raw = raw;
@@ -2419,6 +2499,7 @@ const SPECIALTY_TO_DEPT = {
 
 async function fetchEmer(lat,lng,deptKey){
   window._emerWhy='';
+  setLive('wait','연동 확인 중');
   try{
     // backend /hospitals 프록시 호출
     const url = `${BACKEND_URL}/hospitals?lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}`;
@@ -2428,6 +2509,7 @@ async function fetchEmer(lat,lng,deptKey){
     const items = json.hospitals || [];
     if(!items.length){ window._emerWhy = json.source==='empty' ? '서버에 국립중앙의료원 키가 없거나 응답이 비어 있어요' : '주변 응급실 목록이 비어 있어요'; throw new Error('항목없음'); }
     window._emerRt = json.realtime_count;
+    setLive(json.realtime_count>0 ? 'on' : 'off', json.realtime_count>0 ? '실시간 연동' : '실시간 정보 없음');
 
     let hospitals = items.map(item => {
       const hlat = parseFloat(item.lat), hlng = parseFloat(item.lng);
@@ -2476,6 +2558,7 @@ async function fetchEmer(lat,lng,deptKey){
     return hospitals;
   }catch(e){
     console.warn('[NEMC backend] 실패:', e.message);
+    setLive('off','연동 안 됨');
     if(!window._emerWhy) window._emerWhy = /HTTP (\d+)/.test(e.message) ? '서버 오류 ('+e.message+')' : '서버에 연결할 수 없어요';
     return null;
   }
@@ -2594,15 +2677,12 @@ function renderHospList(hospitals,isCrit){
   window._currentHospitals = hospitals;  // 모달·마커 클릭에서 참조
 
   // 데이터 출처 배지 업데이트
-  const nemcBadge = document.getElementById('nemc-status-badge');
-  const fbBadge   = document.getElementById('fallback-status-badge');
   const subLabel  = document.getElementById('hospSubLabel');
   const isReal = hospitals.some(h => h.real);
-  if(nemcBadge) nemcBadge.style.display = isReal ? 'inline-block' : 'none';
-  if(fbBadge)   fbBadge.style.display   = isReal ? 'none' : 'inline-block';
   if(subLabel){
     const cnt = hospitals.length;
     const rt = hospitals.filter(bedKnown).length;
+    setLive(rt>0 ? 'on' : 'off', rt===cnt && rt>0 ? '실시간 연동' : rt>0 ? `실시간 연동 ${rt}/${cnt}곳` : '실시간 정보 없음');
     if(isReal){
       subLabel.textContent = rt === cnt ? `국립중앙의료원 실시간 병상 정보 ${cnt}곳`
         : rt > 0 ? `국립중앙의료원 ${cnt}곳 (실시간 병상 ${rt}곳)`
@@ -2667,7 +2747,7 @@ function renderBestHospCard(hospitals, isCrit) {
     if (h._isRegularHosp) tags.push(['기존 이용 병원', false]);
     if (specialty && (h.specialties||[]).some(s => s.includes(specialty.replace(/과$/,'')))) tags.push([`${specialty} 있음`, false]);
   }
-  tags.push([bedKnown(h) ? ({ok:'병상 여유',warn:'병상 보통',crit:'병상 포화'}[h.available] || '병상 정보 없음') : '병상 정보 없음', false]);
+  tags.push([bedKnown(h) ? (h.availBeds <= 0 ? '병상 포화' : ({ok:'병상 여유',warn:'병상 보통',crit:'병상 포화'}[h.available] || bedText(h))) : '병상 정보 없음', false]);
   if (!h.real) tags.push(['참고용 데이터', false]);
 
   renderKtasBasis();
@@ -2726,7 +2806,7 @@ function openRouteModal(idx){
   document.getElementById('routeHospAddr').textContent = h.address||'주소 정보 없음';
   document.getElementById('routeDist').textContent     = `${h.dist}km`;
   document.getElementById('routeEta').textContent      = `약 ${h.eta}분`;
-  document.getElementById('routeBed').textContent      = bedKnown(h) ? `가용 ${h.availBeds}병상` : '병상 정보 없음';
+  document.getElementById('routeBed').textContent      = bedText(h);
 
   // ── 병원 상세 패널 채우기 ──────────────────────
   const specHtml = (h.specialties||[]).length
@@ -2765,7 +2845,7 @@ function openRouteModal(idx){
     <div style="margin-bottom:6px;"><strong>🏥 진료과:</strong> ${specHtml}</div>
     ${seriousHtml ? `<div style="margin-bottom:6px;"><strong>⚠️ 중증 수용:</strong><br>${seriousHtml}</div>` : ''}
     <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:var(--fs-xs);margin-bottom:4px;">
-      <span><strong style="color:var(--red);">${bedKnown(h)?'응급 병상 '+h.availBeds+'개':'병상 정보 없음'}</strong></span>
+      <span><strong style="color:var(--red);">${bedText(h)}</strong></span>
       ${extraBeds.map(b=>`<span>${b}</span>`).join('')}
       <span>📊 ${bedStatus}</span>
     </div>
@@ -2782,7 +2862,7 @@ function openRouteModal(idx){
 
 function call119(){
   closeRouteModal();
-  window.location.href = 'tel:119';
+  openDemoModal();   // 시연용: 실제 발신하지 않음
 }
 
 function closeRouteModal(){
