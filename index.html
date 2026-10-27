@@ -398,6 +398,9 @@ body.users-open .uc-ls>li.uc-hl{transition-delay:0s;}
 
 .uc-ov{position:absolute;inset:0;background:rgba(41,34,34,.10);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;pointer-events:none;transition:opacity .3s;border-radius:inherit;}
 .ucard.is-open .uc-ov{opacity:1;pointer-events:auto;}
+.uc-ov{z-index:3;}.uc-pn{z-index:4;}
+/* 상세 패널이 열리면 뒤의 목록 행이 비쳐 겹쳐 보이지 않게 한다 */
+.ucard.is-open .uc-ls{visibility:hidden;transition:visibility 0s .45s;}
 .uc-pn{
   position:absolute;top:10px;right:10px;bottom:10px;width:min(420px,calc(100% - 20px));display:flex;flex-direction:column;border-radius:28px;overflow:hidden;
   transform:translateX(calc(100% + 24px));transition:transform .45s cubic-bezier(.3,1.1,.4,1);
@@ -557,6 +560,29 @@ textarea.chat-input.multi{border-radius:22px;}
 .btn-voice.recording{background:var(--red);animation:vpulse 1s infinite;}
 .btn-voice.recording svg{fill:#fff;}
 @keyframes vpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,0,0,.35)}50%{box-shadow:0 0 0 8px rgba(255,0,0,0)}}
+/* 누르고 말하기: 밀어서 취소 */
+.btn-voice{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .3s cubic-bezier(.34,1.45,.64,1);}
+.btn-voice.recording{transform:scale(1.22);z-index:11;}
+.btn-voice.dragging{transition:none;}
+.voice-status{min-height:32px;}
+.vs-rec{display:inline-flex;align-items:center;vertical-align:middle;}
+.vs-dot{width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:8px;animation:vsb 1s steps(2) infinite;}
+@keyframes vsb{50%{opacity:.25}}
+.vs-hint{margin-left:12px;font-size:var(--fs-2xs);font-weight:700;opacity:var(--vh,.7);}
+.vs-trash{display:none;position:relative;width:28px;height:30px;vertical-align:middle;}
+.voice-status.trash .vs-rec{display:none;}
+.voice-status.trash .vs-trash{display:inline-block;}
+.vs-trash svg{width:100%;height:100%;fill:none;stroke:var(--on-ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;overflow:visible;}
+.vs-trash .lid{transform-box:view-box;transform-origin:3.5px 8px;}
+.vs-bl{position:absolute;left:0;top:7px;width:26px;height:13px;border-radius:7px;background:var(--red);opacity:0;}
+/* 흘러나오는 AI 답변 */
+.sw{opacity:0;}
+.sw.on{opacity:1;animation:swIn .45s cubic-bezier(.2,.8,.2,1) backwards;}
+@keyframes swIn{from{opacity:0;filter:blur(3px)}}
+.s-caret{display:inline-block;width:7px;height:1em;margin-left:2px;border-radius:2px;vertical-align:-2px;background:var(--red);animation:scr 1s steps(1) infinite;}
+@keyframes scr{50%{opacity:0}}
+.s-skip{display:block;margin-top:6px;padding:4px 0;border:0;background:none;color:var(--faint);font:inherit;font-size:var(--fs-2xs);font-weight:700;cursor:pointer;}
+@media (prefers-reduced-motion:reduce){.sw.on,.s-caret,.vs-dot{animation:none;}}
 
 /* ── 큰 글씨: 입력/기타 요소 크기 보정 ── */
 body.large-text input,body.large-text select,body.large-text textarea,body.large-text .chat-input{font-size:var(--fs-sm) !important;}
@@ -939,10 +965,10 @@ function ic(n){ return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
   <div class="chat-qs" id="chatQs"></div>
 
   <div class="chat-input-wrap">
-    <div class="voice-status" id="voiceStatus">녹음 중<span class="voice-wave" id="voiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="voice-timer" id="voiceTimer">5</span>초</div>
+    <div class="voice-status" id="voiceStatus" role="status" aria-label="녹음 중"><span class="vs-rec"><i class="vs-dot" aria-hidden="true"></i><span class="voice-timer" id="voiceTimer">0:00</span><span class="voice-wave" id="voiceWave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span class="vs-hint" id="vsHint">‹ 밀어서 취소</span></span><span class="vs-trash" aria-hidden="true"><svg viewBox="0 0 28 30"><path d="M6 11h16l-1.3 14.2a2 2 0 0 1-2 1.8H9.3a2 2 0 0 1-2-1.8z"/><path d="M11.5 15v8M16.5 15v8"/><g class="lid"><path d="M3.5 8h21M10.5 8V5.8a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1V8"/></g></svg><b class="vs-bl"></b></span></div>
     <textarea class="chat-input" id="chatIn" rows="1" placeholder="증상을 입력하세요" aria-label="증상 입력" autocomplete="off" enterkeyhint="send"></textarea>
     <span class="chat-ring" id="chatRing" aria-hidden="true"><svg viewBox="0 0 30 30"><circle class="bg" cx="15" cy="15" r="12"/><circle class="fg" cx="15" cy="15" r="12"/></svg><span class="chat-left" id="chatLeft"></span></span>
-    <button class="btn-icon btn-voice" id="voiceBtn" type="button" onclick="toggleVoice()" title="음성 입력" aria-label="음성 입력">
+    <button class="btn-icon btn-voice" id="voiceBtn" type="button" title="누른 채로 말하고 떼면 전송, 왼쪽으로 밀면 취소" aria-label="음성 입력, 누른 채로 말하고 떼면 전송, 왼쪽으로 밀면 취소">
       <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 013 3v6a3 3 0 01-6 0V5a3 3 0 013-3zm-1 14.93A7 7 0 015 11H3a9 9 0 008 8.94V22h2v-2.06A9 9 0 0021 11h-2a7 7 0 01-6 6.93z"/></svg>
     </button>
     <button class="btn-icon btn-send" type="button" onclick="sendChat()" aria-label="보내기">
@@ -1033,7 +1059,7 @@ function ic(n){ return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'
           <span class="sos-btn-label">119 신고</span>
         </button>
       </div>
-      <div class="sos-hint" id="sosHint">3초간 길게 눌러보세요 (시연용, 실제 신고되지 않아요)</div>
+      <div class="sos-hint" id="sosHint">3초간 길게 눌러보세요</div>
     </div>
 
     <!-- 사용자 목록 · 슬라이드 상세 패널 -->
@@ -1346,7 +1372,8 @@ document.getElementById('sosBtn').addEventListener('touchend',   e=>{ e.preventD
 // ══════════════════════════════════════════
 //  음성 입력
 // ══════════════════════════════════════════
-async function toggleVoice(){if(isRecording){stopRecording();}else{await startRecording();}}
+let _vDiscard=false,_vDown=false,_vLocked=false,_vStopOnUp=false,_vSX=0,_vT0=0;
+async function toggleVoice(){ if(isRecording){stopRecording(true);}else{ _vLocked=true; await startRecording(); } }
 
 async function startRecording(){
   if(!navigator.mediaDevices?.getUserMedia){appendBubble('마이크를 지원하지 않는 브라우저입니다.','voice-info');return;}
@@ -1368,16 +1395,74 @@ async function startRecording(){
   try{ mediaRecorder = mime ? new MediaRecorder(stream,{mimeType:mime}) : new MediaRecorder(stream); }
   catch(e){ try{ mediaRecorder = new MediaRecorder(stream); }catch(e2){ stream.getTracks().forEach(t=>t.stop()); voiceHelp(e2); return; } }
   mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};
-  mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());const type=((mediaRecorder.mimeType||mime||'audio/webm').split(';')[0]);await sendToSTT(new Blob(audioChunks,{type}),type);};
+  mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());if(_vDiscard){audioChunks=[];return;}const type=((mediaRecorder.mimeType||mime||'audio/webm').split(';')[0]);await sendToSTT(new Blob(audioChunks,{type}),type);};
   mediaRecorder.start(100);
   startWave(stream);
   isRecording=true;setVoiceUI(true);
 
-  let rem=5;document.getElementById('voiceTimer').textContent=rem;
-  voiceTimerInterval=setInterval(()=>{rem--;document.getElementById('voiceTimer').textContent=rem;if(rem<=0){clearInterval(voiceTimerInterval);stopRecording();}},1000);
+  _vT0=Date.now(); _vDiscard=false; vsHint();
+  const tEl=document.getElementById('voiceTimer'); tEl.textContent='0:00';
+  voiceTimerInterval=setInterval(()=>{const s=(Date.now()-_vT0)/1000;tEl.textContent=Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');if(s>=10)stopRecording(true);},200);
 }
 
-function stopRecording(){stopWave();clearInterval(voiceTimerInterval);isRecording=false;setVoiceUI(false);if(mediaRecorder?.state==='recording')mediaRecorder.stop();}
+function vsHint(){ const h=document.getElementById('vsHint'); if(h){ h.textContent=_vLocked?'다시 누르면 전송 · 밀면 취소':'‹ 밀어서 취소'; h.style.setProperty('--vh','.7'); } }
+function stopRecording(send){
+  if(send===undefined) send=true;
+  if(!isRecording){ return; }
+  const dur=Date.now()-_vT0;
+  _vDiscard=!send||dur<500;
+  stopWave();clearInterval(voiceTimerInterval);isRecording=false;_vLocked=false;setVoiceUI(false);vBtnReset();
+  if(mediaRecorder?.state==='recording')mediaRecorder.stop();
+  if(send&&dur<500) showToast('너무 짧아요. 누른 채로 말씀해 주세요');
+}
+function vBtnReset(){ const b=document.getElementById('voiceBtn'); b.style.transform=''; b.classList.remove('dragging'); }
+function cancelRecording(){
+  if(!isRecording) return;
+  stopRecording(false);
+  const st=document.getElementById('voiceStatus');
+  st.classList.add('show','trash');
+  const rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const lid=st.querySelector('.lid'), bl=st.querySelector('.vs-bl'), tr=st.querySelector('.vs-trash');
+  if(!rm&&tr.animate){
+    lid.animate([{transform:'none'},{transform:'none',offset:.1},{transform:'rotate(-40deg)',offset:.25},{transform:'rotate(-40deg)',offset:.52},{transform:'rotate(5deg)',offset:.6},{transform:'none',offset:.66},{transform:'none'}],{duration:1100});
+    tr.animate([{transform:'translateY(0)'},{transform:'translateY(0)',offset:.62},{transform:'rotate(-8deg)',offset:.68},{transform:'rotate(7deg)',offset:.75},{transform:'rotate(-3deg)',offset:.82},{transform:'none'}],{duration:1100});
+    bl.animate([{opacity:0,transform:'translate(46px,0) scale(1.1)'},{opacity:1,transform:'translate(40px,-6px) scale(1.05) rotate(-8deg)',offset:.14},{opacity:1,transform:'translate(18px,-26px) scale(.9) rotate(-20deg)',offset:.5},{opacity:1,transform:'translate(1px,-8px) scale(.55) rotate(-35deg)',offset:.86},{opacity:0,transform:'translate(1px,4px) scale(.3) rotate(-40deg)'}],{duration:620,delay:120,easing:'cubic-bezier(.3,0,.6,1)'});
+  }
+  setTimeout(()=>{ appendBubble('녹음 취소됨','voice-info'); },rm?0:700);
+  setTimeout(()=>{ if(!isRecording){ st.classList.remove('show','trash'); } },rm?600:1250);
+}
+(function(){
+  const b=document.getElementById('voiceBtn'); if(!b) return;
+  const setDx=dx=>{ const x=Math.max(-110,dx); b.style.transform='translateX('+x+'px) scale(1.22)'; const h=document.getElementById('vsHint'); if(h) h.style.setProperty('--vh',Math.max(0,.7+dx/130).toFixed(2)); };
+  const finish=()=>{
+    if(!isRecording) return;
+    if(_vStopOnUp){ stopRecording(true); return; }
+    if(Date.now()-_vT0<350){ _vLocked=true; vsHint(); }   // 짧게 눌렀다 뗐으면 잠금 녹음(한 번 더 누르면 전송)
+    else stopRecording(true);
+  };
+  b.addEventListener('pointerdown',async e=>{
+    if(e.button>0) return;
+    e.preventDefault();
+    try{ b.setPointerCapture(e.pointerId); }catch(_){}
+    _vDown=true; _vSX=e.clientX; b.classList.add('dragging');
+    if(isRecording){ _vStopOnUp=true; return; }
+    _vStopOnUp=false; _vLocked=false;
+    await startRecording();
+    if(isRecording && !_vDown){ _vLocked=true; vsHint(); }   // 권한 팝업 등으로 시작 전에 손을 뗀 경우
+  });
+  b.addEventListener('pointermove',e=>{
+    if(!_vDown||!isRecording) return;
+    const dx=Math.min(0,e.clientX-_vSX); setDx(dx);
+    if(dx<-90){ _vDown=false; cancelRecording(); }
+  });
+  b.addEventListener('pointerup',()=>{ const was=_vDown; _vDown=false; b.classList.remove('dragging'); if(was) finish(); });
+  b.addEventListener('pointercancel',()=>{ _vDown=false; if(isRecording) stopRecording(false); vBtnReset(); });
+  b.addEventListener('contextmenu',e=>e.preventDefault());
+  b.addEventListener('keydown',e=>{
+    if((e.key===' '||e.key==='Enter')&&!e.repeat){ e.preventDefault(); if(isRecording){ stopRecording(true); } else { _vLocked=true; startRecording(); } }
+    else if(e.key==='Escape'&&isRecording){ cancelRecording(); }
+  });
+})();
 
 let _wave={raf:0,ctx:null};
 function startWave(stream){
@@ -1398,6 +1483,7 @@ function stopWave(){
   document.querySelectorAll('#voiceWave i').forEach(b=>{ b.style.transform=''; });
 }
 function setVoiceUI(on){
+  if(on) document.getElementById('voiceStatus').classList.remove('trash');
   { const st=document.getElementById('voiceStatus'); if(on && !_wave.ctx) st.classList.add('sim'); if(!on){ st.classList.remove('sim'); stopWave(); } }
   document.getElementById('voiceBtn').classList.toggle('recording',on);
   document.getElementById('voiceStatus').classList.toggle('show',on);
@@ -1484,6 +1570,45 @@ function appendBubble(html,type){
   const d=document.createElement('div');d.className=`bubble ${type}`;d.innerHTML=html;
   c.appendChild(d);c.scrollTop=c.scrollHeight;
   if(type==='ai'||type==='sys'||type==='crit') showFabBadge();
+  return d;
+}
+// 답변을 낱말 단위로 흐림에서 또렷하게 떠오르게 보여 준다 (이미 도착한 답변을 연출만 하는 것)
+function streamBubble(html,type){
+  const d=appendBubble(html,type);
+  if(!d||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)) return d;
+  const words=[];
+  (function walk(n){
+    [...n.childNodes].forEach(c=>{
+      if(c.nodeType===3){
+        const f=document.createDocumentFragment();
+        c.nodeValue.split(/(\s+)/).forEach(p=>{
+          if(!p) return;
+          if(/^\s+$/.test(p)) f.appendChild(document.createTextNode(p));
+          else { const s=document.createElement('span'); s.className='sw'; s.textContent=p; f.appendChild(s); words.push(s); }
+        });
+        c.replaceWith(f);
+      } else if(c.nodeType===1) walk(c);
+    });
+  })(d);
+  if(!words.length) return d;
+  const caret=document.createElement('span'); caret.className='s-caret'; caret.setAttribute('aria-hidden','true');
+  const skip=document.createElement('button'); skip.type='button'; skip.className='s-skip'; skip.textContent='바로 다 보기';
+  d.appendChild(skip); d.classList.add('streaming');
+  const box=document.getElementById('chatMsgs'); let i=0,tm=0;
+  const done=()=>{ clearTimeout(tm); words.forEach(w=>w.classList.add('on')); caret.remove(); skip.remove(); d.classList.remove('streaming'); box.scrollTop=box.scrollHeight; };
+  const per=Math.max(1,Math.ceil(words.length/40));
+  const tick=()=>{
+    if(!d.isConnected) return;
+    let n=per+(Math.random()<.5?1:0);
+    while(n-->0&&i<words.length) words[i++].classList.add('on');
+    words[i-1].insertAdjacentElement('afterend',caret);
+    box.scrollTop=box.scrollHeight;
+    tm=setTimeout(i<words.length?tick:done,i<words.length?45+Math.random()*60:500);
+  };
+  skip.addEventListener('click',done);
+  d.addEventListener('click',()=>{ if(d.classList.contains('streaming')) done(); });
+  tm=setTimeout(tick,80);
+  return d;
 }
 
 async function sendChat(){
@@ -1554,7 +1679,7 @@ async function sendChat(){
     if(result.type === 'question' || (result.question && !result.level)){
       const q = result.question;
       chatHistory.push({role:'assistant', content: JSON.stringify({type:'question', question:q})});
-      appendBubble(q,'ai');
+      streamBubble(escHtml(q),'ai');
       return;
     }
 
@@ -1619,7 +1744,7 @@ async function sendChat(){
     const matchTxt = (result.specialty && typeof result.specialty_match==='boolean')
       ? (result.specialty_match ? `주변에 ${result.specialty} 병원이 있어요` : `주변에 ${result.specialty} 병원이 없어 가까운 순으로 추천해요`) : '';
 
-    appendBubble(
+    streamBubble(
       `<div class="cl-head"><strong>KTAS ${level}단계 ${kl[level]}</strong><span>${KT_TIME[level]}</span></div>` +
       row('판단 근거', why) +
       row('주호소', cc) +
@@ -2476,15 +2601,15 @@ function _wrapText(ctx, text, maxW){
   return out;
 }
 function _rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
-function drawSummary(cv, withPatient){
+function drawSummary(cv, withPatient, _pass2){
   const ctx=cv.getContext('2d'), W=cv.width, H=cv.height, F="'Pretendard Variable',Pretendard,-apple-system,'Apple SD Gothic Neo','Noto Sans KR',sans-serif";
   const INK='#292222', MUTE='#7A7474', RED='#FF0000', TINT='rgba(41,34,34,.07)';
   ctx.fillStyle='#F3F1F1'; ctx.fillRect(0,0,W,H);
   const g=ctx.createRadialGradient(W*.92,H*.04,0,W*.92,H*.04,W*.7); g.addColorStop(0,'rgba(255,70,70,.16)'); g.addColorStop(1,'rgba(255,70,70,0)'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   let y=96; const X=72, CW=W-X*2;
   ctx.textBaseline='alphabetic';
-  ctx.font='800 64px '+F; ctx.fillStyle=RED; ctx.fillText('E',X,y); const ew=ctx.measureText('E').width; ctx.fillStyle=INK; ctx.fillText('-um',X+ew,y);
-  ctx.font='600 28px '+F; ctx.fillStyle=MUTE; ctx.fillText('개별 환자 응급실 추천',X+ew+ctx.measureText('-um').width+24,y);
+  ctx.font='800 64px '+F; ctx.fillStyle=RED; ctx.fillText('E',X,y); const ew=ctx.measureText('E').width; ctx.fillStyle=INK; ctx.fillText('-um',X+ew,y); const uw=ctx.measureText('-um').width;
+  ctx.font='600 28px '+F; ctx.fillStyle=MUTE; ctx.fillText('개별 환자 응급실 추천',X+ew+uw+24,y);
   const now=new Date(), ts=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   ctx.font='600 26px '+F; ctx.textAlign='right'; ctx.fillText(ts,W-X,y); ctx.textAlign='left';
   y+=44;
@@ -2497,16 +2622,16 @@ function drawSummary(cv, withPatient){
   if(k && k.panic){ kHead='위험 신호 감지 (KTAS 1~2 의심)'; kSub=(k.signals||[]).join(', '); }
   else if(k){ kHead='KTAS '+k.level+'단계 '+k.label+(k.cc?' · '+k.cc:''); kSub=(k.steps&&k.steps.length?k.steps.map(x=>String(x).trim().replace(/[.。]?$/,'.')).join(' '):(k.reason||'')); }
   const subLines=_wrapText(ctx,kSub,CW-88).slice(0,4);
-  card(130+subLines.length*44,(x,yy,w)=>{ ctx.font='800 44px '+F; ctx.fillStyle=INK; ctx.fillText(kHead,x,yy+44); ctx.font='500 30px '+F; ctx.fillStyle=MUTE; subLines.forEach((l,i)=>ctx.fillText(l,x,yy+100+i*44)); });
+  card(150+subLines.length*44,(x,yy,w)=>{ ctx.font='800 44px '+F; ctx.fillStyle=INK; ctx.fillText(kHead,x,yy+44); ctx.font='500 30px '+F; ctx.fillStyle=MUTE; subLines.forEach((l,i)=>ctx.fillText(l,x,yy+100+i*44)); });
   // 병원
   const h=window._bestHosp;
   if(h){
     const addr=_wrapText(ctx,h.address||'',CW-88).slice(0,2);
-    card(250+addr.length*40,(x,yy,w)=>{
+    card(310+addr.length*40,(x,yy,w)=>{
       ctx.font='700 26px '+F; ctx.fillStyle=RED; ctx.fillText('최적 응급실 추천',x,yy+26);
       ctx.font='800 54px '+F; ctx.fillStyle=INK; ctx.fillText(h.name,x,yy+98);
       ctx.font='500 28px '+F; ctx.fillStyle=MUTE; addr.forEach((l,i)=>ctx.fillText(l,x,yy+146+i*40));
-      let px=x, py=yy+170+addr.length*40-20; 
+      let px=x, py=yy+170+addr.length*40-10; 
       px+=pill(h.dist+'km',px,py,false); px+=pill('약 '+h.eta+'분',px,py,false); px+=pill(bedText(h),px,py,false); px+=pill('적합도 '+h.score+'/100',px,py,true);
     });
   } else { card(120,(x,yy)=>{ ctx.font='700 34px '+F; ctx.fillStyle=MUTE; ctx.fillText('추천 병원 정보가 아직 없어요',x,yy+52); }); }
@@ -2522,7 +2647,9 @@ function drawSummary(cv, withPatient){
     }
   }
   ctx.font='500 24px '+F; ctx.fillStyle=MUTE; ctx.textAlign='center';
-  ctx.fillText('졸업 프로젝트 시연 화면이에요. 실제 의료 판단과 119 신고를 대신하지 않아요.',W/2,H-60); ctx.textAlign='left';
+  const needH=Math.max(900,Math.ceil(y+40+70));
+  if(!_pass2 && needH!==H){ cv.height=needH; return drawSummary(cv,withPatient,true); }
+  ctx.fillText('졸업 프로젝트 시연 화면입니다!',W/2,H-48); ctx.textAlign='left';
 }
 function openSummary(){
   const m=document.getElementById('sumModal'), cv=document.getElementById('sumCanvas'), cb=document.getElementById('sumPatient');
