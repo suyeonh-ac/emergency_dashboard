@@ -861,6 +861,10 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
 :root{--prim-flat:#2B2525;--glass-flat:rgba(255,255,255,.60);}
 :root[data-theme="dark"]{--prim-flat:#F4F1F1;--glass-flat:rgba(255,255,255,.10);}
 
+/* 데스크탑: 챗봇이 열리면 본문이 옆으로 비켜서 가려지지 않게 */
+@media (min-width:769px){
+  .main-scroll.mv{transition:margin-left .55s var(--ease),width .55s var(--ease);}
+}
 /* 다크모드: 밝은 지도 타일 위에서도 읽히도록 지도 위 카드는 불투명하게 */
 :root[data-theme="dark"] .map-info{background:rgba(26,22,22,.90);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
 :root[data-theme="dark"] .map-info strong{color:#fff;}
@@ -3483,6 +3487,7 @@ function setChatOpen(v){
   panel.setAttribute('aria-hidden', String(!v));
   fab.setAttribute('aria-expanded', String(v));
   fab.setAttribute('aria-label', v ? '상담 닫기' : '증상 상담 열기');
+  layoutMain(true);
   if(v){
     document.getElementById('chatFabBadge').classList.remove('show');
     document.getElementById('chatFabTip').classList.add('gone');
@@ -3491,6 +3496,28 @@ function setChatOpen(v){
     const c = document.getElementById('chatMsgs'); c.scrollTop = c.scrollHeight;
   }
 }
+
+/* 챗봇 열림 시 본문 이동 (데스크탑) */
+function layoutMain(animate){
+  const el=document.querySelector('.main-scroll'); if(!el) return;
+  const vw=document.documentElement.clientWidth;
+  if(vw<=768){ el.classList.remove('mv'); el.style.marginLeft=el.style.width=el.style.marginRight=''; return; }
+  const W=Math.min(1000,vw), ml=(vw-W)/2;
+  let w=W, m=ml;
+  if(isChatOpen()){
+    const pw=document.getElementById('chatPanel').offsetWidth;
+    const avail=vw-pw-20-20;
+    w=Math.max(480,Math.min(W,avail)); m=Math.max(0,Math.min(ml,avail-w));
+  }
+  el.classList.toggle('mv',!!animate);
+  el.style.marginRight='0'; el.style.marginLeft=m+'px'; el.style.width=w+'px';
+  if(animate){
+    const t0=performance.now();
+    (function tick(){ if(typeof kakaoMap!=='undefined'&&kakaoMap&&kakaoMap.relayout) kakaoMap.relayout(); if(performance.now()-t0<650) requestAnimationFrame(tick); })();
+  }
+}
+window.addEventListener('resize',()=>layoutMain(false));
+window.addEventListener('load',()=>layoutMain(false));
 function toggleChat(){ setChatOpen(!isChatOpen()); }
 function openChatDrawer(){ setChatOpen(true); }
 function closeChatDrawer(){ setChatOpen(false); }
