@@ -860,6 +860,12 @@ body.large-text .qr-box{max-width:min(560px,94vw);}
    정리: 작은 버튼·아바타·말풍선의 장식용 그라데이션을 단색으로, 작은 요소의 바깥 그림자 제거 */
 :root{--prim-flat:#2B2525;--glass-flat:rgba(255,255,255,.60);}
 :root[data-theme="dark"]{--prim-flat:#F4F1F1;--glass-flat:rgba(255,255,255,.10);}
+
+/* 다크모드: 밝은 지도 타일 위에서도 읽히도록 지도 위 카드는 불투명하게 */
+:root[data-theme="dark"] .map-info{background:rgba(26,22,22,.90);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);}
+:root[data-theme="dark"] .map-info strong{color:#fff;}
+:root[data-theme="dark"] .map-info span{color:#D8D3D3;}
+:root[data-theme="dark"] .map-myloc-btn{background:rgba(26,22,22,.90);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:#ff6b6b;}
 .pill-btn,.qr-trigger-btn,.theme-btn,.lt-btn,.route-btn,.chat-qk,.uc-av,
 :root[data-theme="dark"] .pill-btn,:root[data-theme="dark"] .qr-trigger-btn,:root[data-theme="dark"] .theme-btn,:root[data-theme="dark"] .lt-btn,
 :root[data-theme="dark"] .route-btn,:root[data-theme="dark"] .chat-qk,:root[data-theme="dark"] .uc-av{background:var(--glass-flat);}
