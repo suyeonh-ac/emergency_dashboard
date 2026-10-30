@@ -65,6 +65,7 @@
     var meta = $('pMeta'); meta.textContent = '';
     meta.appendChild(el('span', 'chip' + (p.age == null ? ' none' : ''), p.age == null ? '나이 미입력' : p.age + '세'));
     meta.appendChild(el('span', 'chip' + (!p.gender ? ' none' : ''), p.gender ? (p.gender==='남'?'남성':p.gender==='여'?'여성':p.gender) : '성별 미입력'));
+    meta.appendChild(el('span', 'chip blood' + (!p.blood_type ? ' none' : ''), p.blood_type ? '혈액형 ' + p.blood_type : '혈액형 미입력'));
     var list = $('pList'); list.textContent = '';
     list.appendChild(row('기저질환', listNode(p.conditions)));
     list.appendChild(row('복용 중인 약', listNode(p.medications)));

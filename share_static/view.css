@@ -75,3 +75,6 @@ body.scan #stOk .list{animation-delay:.12s;}
 body.scan #stOk .foot{animation-delay:.24s;}
 @keyframes rv{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){body.scan .pulse i,body.scan #stOk .card,body.scan #stOk .foot{animation:none}}
+
+.chip.blood:not(.none){background:var(--red-soft);color:var(--red);}
+@media (prefers-color-scheme:dark){.chip.blood:not(.none){color:#FFB4B4;}}

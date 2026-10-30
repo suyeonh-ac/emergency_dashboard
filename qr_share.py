@@ -229,6 +229,9 @@ def _list(v, field):
     return [_txt(x, 120, field) for x in v]
 
 
+BLOOD_TYPES = {"A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-", "모름"}
+
+
 def clean_snapshot(d):
     if not isinstance(d, dict):
         raise ValueError("patient")
@@ -239,6 +242,10 @@ def clean_snapshot(d):
     gender = d.get("gender")
     if gender is not None:
         gender = _txt(gender, 10, "gender")
+    blood = d.get("blood_type")
+    if blood is not None:
+        if blood not in BLOOD_TYPES:
+            raise ValueError("blood_type")
     hosp = d.get("hospital")
     if hosp is not None:
         if isinstance(hosp, str):
@@ -252,6 +259,7 @@ def clean_snapshot(d):
         "name": _txt(d.get("name"), 60, "name"),
         "age": age,
         "gender": gender,
+        "blood_type": blood,
         "conditions": _list(d.get("conditions"), "conditions"),
         "medications": _list(d.get("medications"), "medications"),
         "allergies": _list(d.get("allergies"), "allergies"),
